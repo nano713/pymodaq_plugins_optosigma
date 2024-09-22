@@ -2,19 +2,11 @@ from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_pa
     DataActuator  # common set of parameters for all actuators
 from pymodaq.utils.daq_utils import ThreadCommand # object used to send info back to the main thread
 from pymodaq.utils.parameter import Parameter
+from pymodaq_plugins_optosigma.hardware.shrc203.shrc203_VISADriver import SHRC203VISADriver
+from pymodaq.utils.logger import set_logger, get_module_name
+logger = set_logger(get_module_name(__file__))
 
-
-class PythonWrapperOfYourInstrument:
-    #  TODO Replace this fake class with the import of the real python wrapper of your instrument
-    pass
-
-# TODO:
-# (1) change the name of the following class to DAQ_Move_TheNameOfYourChoice
-# (2) change the name of this file to daq_move_TheNameOfYourChoice ("TheNameOfYourChoice" should be the SAME
-#     for the class name and the file name.)
-# (3) this file should then be put into the right folder, namely IN THE FOLDER OF THE PLUGIN YOU ARE DEVELOPING:
-#     pymodaq_plugins_my_plugin/daq_move_plugins
-class DAQ_Move_Template(DAQ_Move_base):
+class DAQ_Move_SHRC203(DAQ_Move_base):
     """ Instrument plugin class for an actuator.
     
     This object inherits all functionalities to communicate with PyMoDAQ’s DAQ_Move module through inheritance via
@@ -38,10 +30,9 @@ class DAQ_Move_Template(DAQ_Move_base):
     """
     _controller_units = 'whatever'  # TODO for your plugin: put the correct unit here
     is_multiaxes = False  # TODO for your plugin set to True if this plugin is controlled for a multiaxis controller
-    _axis_names = ['Axis1', 'Axis2']  # TODO for your plugin: complete the list
+    _axis_names = ['Axis1', 'Axis2', 'Axis3']  # TODO for your plugin: complete the list
     _epsilon = 0.1  # TODO replace this by a value that is correct depending on your controller
-    data_actuator_type = DataActuatorType['DataActuator']  # wether you use the new data style for actuator otherwise set this
-    # as  DataActuatorType['float']  (or entirely remove the line)
+
 
     params = [   # TODO for your custom plugin: elements to be added here as dicts in order to control your custom stage
                 ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
@@ -49,12 +40,11 @@ class DAQ_Move_Template(DAQ_Move_base):
     # the target value. It is the developer responsibility to put here a meaningful value
 
     def ini_attributes(self):
-        #  TODO declare the type of the wrapper (and assign it to self.controller) you're going to use for easy
-        #  autocompletion
-        self.controller: PythonWrapperOfYourInstrument = None
-
-        #TODO declare here attributes you want/need to init with a default value
-        pass
+        self.controller: SHRC203VISADriver = None
+        self.channels_in_selected_mode = None
+        self.rsrc_name = None
+        self.panel = None
+        self.instr = None
 
     def get_actuator_value(self):
         """Get the current value from the hardware with scaling conversion.
@@ -104,9 +94,9 @@ class DAQ_Move_Template(DAQ_Move_base):
             False if initialization failed otherwise True
         """
 
-        raise NotImplemented  # TODO when writing your own plugin remove this line and modify the one below
-        self.controller = self.ini_stage_init(old_controller=controller,
-                                              new_controller=PythonWrapperOfYourInstrument())
+        self.controller.init_hardware()
+        # self.controller = self.ini_stage_init(old_controller=controller,
+        #                                       new_controller=SHRC203VISADriver())
 
         info = "Whatever info you want to log"
         initialized = self.controller.a_method_or_atttribute_to_check_if_init()  # todo
