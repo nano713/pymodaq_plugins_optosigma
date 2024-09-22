@@ -1,2 +1,13 @@
 #this is the configuration file of the plugin
 
+title = "this is the configuration file of the Optosigma plugin"
+
+[Optosigma]
+
+[Optosigma.SHRC203]
+title = "Configuration entry for a Optosigma SHRC203 Feedback Stage Controller"
+
+[Optosigma.SHRC203.INSTRUMENT01]
+title = "Feedback stage controller"
+rsrc_name_example = ["ASRL3::INSTR"]
+rsrc_name = "ASRL3::INSTR"
