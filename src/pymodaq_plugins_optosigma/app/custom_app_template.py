@@ -1,10 +1,10 @@
 from qtpy import QtWidgets
 
 from pymodaq.utils import gui_utils as gutils
-from pymodaq.utils.config import Config, get_set_preset_path, ConfigError
+from pymodaq.utils.config import Config
 from pymodaq.utils.logger import set_logger, get_module_name
 
-# todo: replace here *pymodaq_plugins_template* by your plugin package name
+# todo: replace here *pymodaq_plugins_optosigma* by your plugin package name
 from pymodaq_plugins_template.utils import Config as PluginConfig
 
 logger = set_logger(get_module_name(__file__))
@@ -12,26 +12,18 @@ logger = set_logger(get_module_name(__file__))
 main_config = Config()
 plugin_config = PluginConfig()
 
-# todo: modify this as you wish
-EXTENSION_NAME = 'MY_EXTENSION_NAME'  # the name that will be displayed in the extension list in the
-# dashboard
-CLASS_NAME = 'CustomExtensionTemplate'  # this should be the name of your class defined below
-
 
 # todo: modify the name of this class to reflect its application and change the name in the main
 # method at the end of the script
-class CustomExtensionTemplate(gutils.CustomApp):
+class CustomAppTemplate(gutils.CustomApp):
 
     # todo: if you wish to create custom Parameter and corresponding widgets. These will be
     # automatically added as children of self.settings. Morevover, the self.settings_tree will
     # render the widgets in a Qtree. If you wish to see it in your app, add is into a Dock
     params = []
 
-    def __init__(self, parent: gutils.DockArea, dashboard):
-        super().__init__(parent, dashboard)
-
-        # info: in an extension, if you want to interact with ControlModules you have to use the
-        # object: self.modules_manager which is a ModulesManager instance from the dashboard
+    def __init__(self, parent: gutils.DockArea):
+        super().__init__(parent)
 
         self.setup_ui()
 
@@ -115,21 +107,19 @@ class CustomExtensionTemplate(gutils.CustomApp):
 
 def main():
     from pymodaq.utils.gui_utils.utils import mkQApp
-    from pymodaq.utils.gui_utils.loader_utils import load_dashboard_with_preset
-    from pymodaq.utils.messenger import messagebox
+    app = mkQApp('CustomApp')
 
-    app = mkQApp(EXTENSION_NAME)
-    try:
-        preset_file_name = plugin_config('presets', f'preset_for_{CLASS_NAME.lower()}')
-        load_dashboard_with_preset(preset_file_name, EXTENSION_NAME)
-        app.exec()
+    mainwindow = QtWidgets.QMainWindow()
+    dockarea = gutils.DockArea()
+    mainwindow.setCentralWidget(dockarea)
 
-    except ConfigError as e:
-        messagebox(f'No entry with name f"preset_for_{CLASS_NAME.lower()}" has been configured'
-                   f'in the plugin config file. The toml entry should be:\n'
-                   f'[presets]'
-                   f"preset_for_{CLASS_NAME.lower()} = {'a name for an existing preset'}"
-                   )
+    # todo: change the name here to be the same as your app class
+    prog = CustomAppTemplate(dockarea)
+
+    mainwindow.show()
+
+    app.exec()
+
 
 if __name__ == '__main__':
     main()
