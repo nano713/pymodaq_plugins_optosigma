@@ -9,8 +9,10 @@ logger = set_logger(get_module_name(__file__))
 class SBIS26VISADRIVER():
     """ VISA class driver for the OptoSigma stage SBIS26. """
     def __init__(self, baud_rate = 38400, **kwargs):
+        rm = pyvisa.ResourceManager()
         kwargs.setdefault('read_termination', '\r\n')
         self._stage = None
+        self.rsrc_list = rsrc_list 
         self.visa_address = None
         self.initialize()
 
@@ -19,6 +21,9 @@ class SBIS26VISADRIVER():
         self.ch_2 = config.CHANNELS[1]
         self.ch_2 = config.CHANNELS[2]
         self.visa_address = 'ASRL/dev/ttyUSB0::INSTR'
+        self._stage = rm.open_resource(self.visa_address, 
+                                    'read_termination', '\r\n',
+                                      baud_rate = 38400)
         self.stage = self.connect_to_stage(self.visa_address)
 
     def connect_to_stage(self, visa_address):
