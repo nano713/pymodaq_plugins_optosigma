@@ -61,7 +61,43 @@ class SBIS26VISADRIVER():
                 position = pos_min
                 self._stage.write("A:D,{channel}," + f"{position}")
         self.wait_for_ready()
-        return position
+        return self.read()
+    def move_relative(self, pos): 
+        pos_min = -134217728
+        pos_max = 134217727
+
+        current_position = self.ask("Q:D,{channel}")
+        get_position = current_position.split(",")
+        position = int(get_position[2])
+        target_pos = position - pos
+
+        if target_pos >= pos_min and target_pos <= pos_max: 
+            if pos >= 0:
+                self._stage.write("M:D,{channel}," + f"{pos}")
+            else:
+                self._stage.write("M:D,{channel}," + f"{pos}")
+        else:
+            if pos >= 0:
+                pos = pos_max 
+                self._stage.write("A:D,{channel}," + f"{pos}")
+            else:
+                pos = pos_min 
+                self._stage.write("A:D,{channel}," + f"{pos}")
+        self.wait_for_ready()
+        return self.read()
+    def stop(self):
+        self._stage.write("LE:A")
+        return self.read()
+    def wait_for_read(self): 
+        time0 = time()
+        while self.status() != 'R' :
+            print(self.status())
+            time1 = time()-time0
+            if time1 >= 60:
+                log.warning("Timeout")
+                break
+            sleep(0.2)
+            
     def home(self): 
         """ Sends the stage to the home positio."""
         self._stage.write("H:D,{channel}")
