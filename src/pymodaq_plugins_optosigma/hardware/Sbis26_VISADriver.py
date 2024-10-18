@@ -10,10 +10,10 @@ logger = set_logger(get_module_name(__file__))
 class SBIS26VISADRIVER():
     """ VISA class driver for the OptoSigma stage SBIS26. """
     def __init__(self, baud_rate = 38400, **kwargs):
-        self.rm = pyvisa.ResourceManager()
+        self.rm = visa.ResourceManager()
         kwargs.setdefault('read_termination', '\r\n')
         self._stage = None
-        self.rsrc_list = rsrc_list 
+        self.rsrc_list = self.rm.list_resources()
         self.visa_address = None
         self.initialize()
 
@@ -71,7 +71,7 @@ class SBIS26VISADRIVER():
         pos_min = -134217728
         pos_max = 134217727
         channel = channel
-        current_position = self.ask("Q:D + {channel}")
+        current_position = self.ask("Q:D,{channel}")
         get_position = current_position.split(",")
         position = int(get_position[2])
         target_pos = position - pos
