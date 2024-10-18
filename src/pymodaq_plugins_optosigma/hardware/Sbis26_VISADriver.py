@@ -109,10 +109,13 @@ class SBIS26VISADRIVER():
                 break
             sleep(0.2)
             
-    def home(self): 
+    def home(self,channel): 
         """ Sends the stage to the home positio."""
+        channel = channel
         self._stage.write("H:D,{channel}")
-        self._
+        print("Moved home")
+        self.wait_for_ready()
+        return self.read()
 
     def move_stage(self, position):
         self.stage.write('1PA{}'.format(position))
