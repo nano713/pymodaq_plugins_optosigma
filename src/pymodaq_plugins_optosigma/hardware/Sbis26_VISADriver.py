@@ -32,8 +32,6 @@ class SBIS26VISADRIVER():
         logger.info('Connect to stage {}'.format(number))
         return self.read()
 
-        self._stage.write("#CONNECT:")
-        return self._stage.read()
     def count_devices(self):
         number = self._stage.ask("CONNECT?")
         return number
