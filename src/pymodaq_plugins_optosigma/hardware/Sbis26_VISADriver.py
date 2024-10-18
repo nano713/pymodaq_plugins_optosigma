@@ -1,5 +1,6 @@
 # Purpose: Driver code for SBIS26. This script will move the OptoSigma stage. 
 
+import time
 import numpy as np
 import pyvisa as visa
 from pymodaq_plugins_optosigma import config
@@ -106,9 +107,9 @@ class SBIS26VISADRIVER():
             print(self.status())
             time1 = time()-time0
             if time1 >= 60:
-                log.warning("Timeout")
+                logger.warning("Timeout")
                 break
-            sleep(0.2)
+            time.sleep(0.2)
             
     def home(self,channel): 
         """ Sends the stage to the home positio."""
