@@ -17,9 +17,9 @@ class SBIS26VISADRIVER():
         self.initialize()
 
     def initialize(self):
-        self.ch_1 = config.CHANNELS[0] #sets the channels for the stage
-        self.ch_2 = config.CHANNELS[1]
-        self.ch_2 = config.CHANNELS[2]
+        # self.ch_1 = config.CHANNELS[0] #sets the channels for the stage
+        # self.ch_2 = config.CHANNELS[1]
+        # self.ch_2 = config.CHANNELS[2]
         self.visa_address = 'ASRL/dev/ttyUSB0::INSTR'
         self._stage = self.rm.open_resource(self.visa_address, 
                                     'read_termination', '\r\n',
@@ -42,10 +42,13 @@ class SBIS26VISADRIVER():
             print("Error")
         return msg 
     
-    def get_position(self): 
+    def get_position(self,channel): 
+        channel = channel
         position = self._stage.read("Q:D,{channel}")
         return position
-    def move(self, position):
+    def move(self, position,channel):
+        
+        channel = channel
         pos_min = -134217728
         pos_max = 134217727
         if position >= pos_min and position <= pos_max: 
@@ -62,11 +65,11 @@ class SBIS26VISADRIVER():
                 self._stage.write("A:D,{channel}," + f"{position}")
         self.wait_for_ready()
         return self.read()
-    def move_relative(self, pos): 
+    def move_relative(self, pos,channel): 
         pos_min = -134217728
         pos_max = 134217727
-
-        current_position = self.ask("Q:D,{channel}")
+        channel = channel
+        current_position = self.ask("Q:D + {channel}")
         get_position = current_position.split(",")
         position = int(get_position[2])
         target_pos = position - pos
@@ -85,6 +88,14 @@ class SBIS26VISADRIVER():
                 self._stage.write("A:D,{channel}," + f"{pos}")
         self.wait_for_ready()
         return self.read()
+    def set_speed(self,speed,range,acce,channel):
+        channel = channel
+        if speed > 0 and range > 0 and acce > 0: 
+            self._stage.write("D:D,{channel}," + f"+{speed},{range},{acce}")
+            return self.read()
+        else:
+            print("NG")
+
     def stop(self):
         self._stage.write("LE:A")
         return self.read()
