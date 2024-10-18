@@ -26,9 +26,10 @@ class SBIS26VISADRIVER():
                                       baud_rate = 38400)
         self.stage = self.connect_to_stage(self.visa_address)
 
-    def connect_to_stage(self, visa_address):
+    def connect_to_stage(self):
         number = self._stage.ask("CONNECT?")
         logger.info('Connect to stage {}'.format(number))
+        return self.read()
 
         self._stage.write("#CONNECT:")
         return self._stage.read()
@@ -122,3 +123,8 @@ class SBIS26VISADRIVER():
 
     def close(self):
         self.stage.close()
+    def read(self):
+        msg = super().read() 
+        if msg[-1] == "NG":
+            print("Not OK")
+        return msg
