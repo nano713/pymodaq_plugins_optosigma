@@ -62,7 +62,7 @@ class SBIS26VISADriver():
 
     def get_position(self, channel):
         channel = channel
-        position = self._stage.read("Q:D,{channel}")
+        position = self._stage.read(f"Q:D,{channel}")
         return position
 
     def move_abs(self, position, channel):
@@ -113,7 +113,7 @@ class SBIS26VISADriver():
     def set_speed(self, speed, range, acce, channel):
         # channel = channel
         if speed > 0 and range > 0 and acce > 0:
-            self._stage.write(f"D:D,{channel}," + f"+{speed},{range},{acce}")
+            self._stage.write(f"D:D,{channel}," + f"{speed},{range},{acce}")
             # return self.read()
         else:
             print("NG")
@@ -135,7 +135,7 @@ class SBIS26VISADriver():
     def home(self, channel):
         """ Sends the stage to the home positio."""
         channel = channel
-        self._stage.write("H:D,{channel}")
+        self._stage.write(f"H:D,{channel}")
         print("Moved home")
         self.wait_for_ready()
         # return self.read()
