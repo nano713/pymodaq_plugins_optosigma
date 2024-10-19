@@ -19,6 +19,8 @@ class SBIS26VISADriver():
         # self.rsrc_list = rsrc_list
         # self.visa_address = None
         self.baud_rate = 38400
+        self.max = 134217727
+        self.min = -134217728
         # self.initialize()
 
     def connect(self, visa_address):
@@ -61,13 +63,12 @@ class SBIS26VISADriver():
     #     return msg
 
     def get_position(self, channel):
-        channel = channel
+
         position = self._stage.read(f"Q:D,{channel}")
         return position
 
     def move_abs(self, position, channel):
 
-        channel = channel
         pos_min = -134217728
         pos_max = 134217727
         if position >= pos_min and position <= pos_max:
@@ -134,7 +135,6 @@ class SBIS26VISADriver():
 
     def home(self, channel):
         """ Sends the stage to the home positio."""
-        channel = channel
         self._stage.write(f"H:D,{channel}")
         print("Moved home")
         self.wait_for_ready()
