@@ -4,7 +4,6 @@ import numpy as np
 import pyvisa
 # from pymodaq_plugins_optosigma import config
 import time
-from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
 
@@ -26,7 +25,8 @@ class SBIS26VISADriver():
         # self.ch_2 = config.CHANNELS[1]
         # self.ch_2 = config.CHANNELS[2]
         # self.visa_address = 'ASRL/dev/ttyUSB0::INSTR'
-        self._stage = self.rm.open_resource(visa_address)
+        rm = pyvisa.ResourceManager()
+        self._stage = rm.open_resource(visa_address)
         self._stage.read_termination = '\r\n'
         self._stage.baud_rate = self.baud_rate
         self._stage.parity = pyvisa.constants.Parity.none
