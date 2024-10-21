@@ -2,8 +2,8 @@
 
 import time
 import numpy as np
-import pyvisa as visa
-from pymodaq_plugins_optosigma import config
+import pyvisa
+# from pymodaq_plugins_optosigma import config
 from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
@@ -12,24 +12,32 @@ logger = set_logger(get_module_name(__file__))
 class SBIS26VISADRIVER:
     """VISA class driver for the OptoSigma stage SBIS26."""
 
-    def __init__(self, baud_rate=38400, **kwargs):
-        self.rm = visa.ResourceManager()
-        kwargs.setdefault("read_termination", "\r\n")
-        self._stage = None
-        self.rsrc_list = self.rm.list_resources()
-        self.visa_address = None
-        self.initialize()
+    def __init__(self, rsrc_name):
+
+        # kwargs.setdefault("read_termination", "\r\n")
+        self._instr = None
+        self.rsrc_name = rsrc_name
+        # self.rsrc_list = self.rm.list_resources()
+        # self.visa_address = None
+        # self.initialize()
 
     def initialize(self):
         """Initializes the stage."""
         # self.ch_1 = config.CHANNELS[0] #sets the channels for the stage
         # self.ch_2 = config.CHANNELS[1]
         # self.ch_2 = config.CHANNELS[2]
-        self.visa_address = "ASRL/dev/ttyUSB0::INSTR"
-        self._stage = self.rm.open_resource(
-            self.visa_address, "read_termination", "\r\n", baud_rate=38400
-        )
-        self.stage = self.connect_to_stage(self.visa_address)
+        rm = pyvisa.ResourceManager()
+
+        # self._stage = self.rm.open_resource(
+        #     self.visa_address, "read_termination", "\r\n", baud_rate=38400
+        # )
+        self._stage = rm.open_resource(self.rsrc_name)
+        self._stage.read_termination = "\r\n"
+        self._stage.baud_rate = 38400
+        self._stage.parity = pyvisa.constants .Parity.none
+        self._stage.stop_bits = pyvisa.constants.StopBits.one
+
+        # self.stage = self.connect_to_stage(self.visa_address)
 
     def connect_to_stage(self):
         """Connects to the stage."""
@@ -56,7 +64,7 @@ class SBIS26VISADRIVER:
         """Gets the position of the stage depending on the channel."""
 
         channel = channel
-        position = self._stage.read(f"Q:D,{channel}")
+        position = self._stage.read("Q:D,{channel}")
         return position
 
     def move(self, position, channel):
@@ -67,7 +75,7 @@ class SBIS26VISADRIVER:
         pos_max = 134217727
         if position >= pos_min and position <= pos_max:
             if position >= 0:
-                self._stage.write(f"A:D,{channel}," + f"{position}")
+                self._stage.write("A:D,{channel}," + f"{position}")
             else:
                 self._stage.write("A:D,{channel}," + f"{position}")
         else:
@@ -76,7 +84,7 @@ class SBIS26VISADRIVER:
                 self._stage.write("A:D,{channel}," + f"{position}")
             else:
                 position = pos_min
-                self._stage.write(f"A:D,{channel}," + f"{position}")
+                self._stage.write("A:D,{channel}," + f"{position}")
         self.wait_for_ready()
         return self.read()
 
@@ -138,10 +146,10 @@ class SBIS26VISADRIVER:
         """Sends the stage to the home positiom."""
 
         channel = channel
-        self._stage.write(f"H:D,{channel}")
+        self._stage.write("H:D,{channel}")
         print("Moved home")
         self.wait_for_ready()
-        # return self.read()
+        return self.read()
 
 
     def close(self):
