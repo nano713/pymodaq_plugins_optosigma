@@ -134,7 +134,7 @@ class SBIS26VISADriver():
             time.sleep(0.2)
 
     def home(self, channel):
-        """ Sends the stage to the home positio."""
+        """ Sends the stage to the home position."""
         self._stage.write(f"H:D,{channel}")
         print("Moved home")
         self.wait_for_ready()
