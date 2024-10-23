@@ -19,6 +19,9 @@ class SBIS26VISADRIVER:
         self.rsrc_name = rsrc_name
         # self.rsrc_list = self.rm.list_resources()
         # self.visa_address = None
+        self.baud_rate = 38400
+        self.max = 134217727
+        self.min = -134217728
         # self.initialize()
 
     def initialize(self):
@@ -61,16 +64,13 @@ class SBIS26VISADRIVER:
         return msg
 
     def get_position(self, channel):
-        """Gets the position of the stage depending on the channel."""
 
-        channel = channel
-        position = self._stage.read("Q:D,{channel}")
+        position = self._stage.read(f"Q:D,{channel}")
         return position
 
     def move(self, position, channel):
         """Moves the stage to the specified position."""
 
-        channel = channel
         pos_min = -134217728
         pos_max = 134217727
         if position >= pos_min and position <= pos_max:
@@ -143,10 +143,8 @@ class SBIS26VISADRIVER:
             time.sleep(0.2)
 
     def home(self, channel):
-        """Sends the stage to the home positiom."""
-
-        channel = channel
-        self._stage.write("H:D,{channel}")
+        """ Sends the stage to the home position."""
+        self._stage.write(f"H:D,{channel}")
         print("Moved home")
         self.wait_for_ready()
         return self.read()
