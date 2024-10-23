@@ -20,27 +20,27 @@ class SBIS26VISADRIVER:
         # self.rsrc_list = self.rm.list_resources()
         # self.visa_address = None
         self.baud_rate = 38400
-        self.max = 134217727
-        self.min = -134217728
+        self.max_position = 134217727 # DK: max is built in variable. Avoid hardcoding.
+        self.min_position = -134217728
         # self.initialize()
 
     def initialize(self):
         """Initializes the stage."""
-        # self.ch_1 = config.CHANNELS[0] #sets the channels for the stage
-        # self.ch_2 = config.CHANNELS[1]
-        # self.ch_2 = config.CHANNELS[2]
+        # self.ch_1 = config.CHANNELS[0] #sets the channels for the stage # DK: Delete. Config is wrong.
+        # self.ch_2 = config.CHANNELS[1] # DK: Delete.
+        # self.ch_2 = config.CHANNELS[2] # DK: Delete.
         rm = pyvisa.ResourceManager()
 
-        # self._stage = self.rm.open_resource(
+        # self._stage = self.rm.open_resource( # DK: this style is wrong. Delete.
         #     self.visa_address, "read_termination", "\r\n", baud_rate=38400
         # )
         self._stage = rm.open_resource(self.rsrc_name)
         self._stage.read_termination = "\r\n"
-        self._stage.baud_rate = 38400
+        self._stage.baud_rate = self.baud_rate
         self._stage.parity = pyvisa.constants .Parity.none
         self._stage.stop_bits = pyvisa.constants.StopBits.one
 
-        # self.stage = self.connect_to_stage(self.visa_address)
+        # self.stage = self.connect_to_stage(self.visa_address)  # DK: Delete.
 
     def connect_to_stage(self):
         """Connects to the stage."""
@@ -58,7 +58,7 @@ class SBIS26VISADRIVER:
     def read(self):
         """Reads and returns the message from the stage."""
 
-        msg = super().read()  # check for errors that have occured
+        msg = super().read()  # check for errors that have occured # DK: do not use super() because SBIS26VISADRIVER does not use any inheritance.
         if msg[-1] == "NG":
             print("Error")
         return msg
@@ -71,28 +71,28 @@ class SBIS26VISADRIVER:
     def move(self, position, channel):
         """Moves the stage to the specified position."""
 
-        pos_min = -134217728
-        pos_max = 134217727
+        pos_min = -134217728 # DK: Delete this. Use max_position and min_position defined above.
+        pos_max = 134217727 # DK: Delete this. Use max_position and min_position defined above
         if position >= pos_min and position <= pos_max:
             if position >= 0:
-                self._stage.write("A:D,{channel}," + f"{position}")
+                self._stage.write("A:D,{channel}," + f"{position}") # DK: use format like f"A:D,{channel}," + f"{position}". Same below.
             else:
-                self._stage.write("A:D,{channel}," + f"{position}")
+                self._stage.write("A:D,{channel}," + f"{position}") #DK: format
         else:
             if position >= 0:
                 position = pos_max
-                self._stage.write("A:D,{channel}," + f"{position}")
+                self._stage.write("A:D,{channel}," + f"{position}") #DK: format
             else:
                 position = pos_min
-                self._stage.write("A:D,{channel}," + f"{position}")
+                self._stage.write("A:D,{channel}," + f"{position}") #DK: format
         self.wait_for_ready()
         return self.read()
 
     def move_relative(self, pos, channel):
         """Moves the stage to the specified relative position."""
 
-        pos_min = -134217728
-        pos_max = 134217727
+        pos_min = -134217728 # DK: Delete this. Use max_position and min_position defined above
+        pos_max = 134217727 # DK: Delete this. Use max_position and min_position defined above
         channel = channel
         current_position = self.ask("Q:D,{channel}")
         get_position = current_position.split(",")
@@ -101,16 +101,16 @@ class SBIS26VISADRIVER:
 
         if target_pos >= pos_min and target_pos <= pos_max:
             if pos >= 0:
-                self._stage.write("M:D,{channel}," + f"{pos}")
+                self._stage.write("M:D,{channel}," + f"{pos}") #DK: format
             else:
-                self._stage.write("M:D,{channel}," + f"{pos}")
+                self._stage.write("M:D,{channel}," + f"{pos}") #DK: format
         else:
             if pos >= 0:
                 pos = pos_max
-                self._stage.write("A:D,{channel}," + f"{pos}")
+                self._stage.write("A:D,{channel}," + f"{pos}") #DK: format
             else:
                 pos = pos_min
-                self._stage.write("A:D,{channel}," + f"{pos}")
+                self._stage.write("A:D,{channel}," + f"{pos}") #DK: format
         self.wait_for_ready()
         return self.read()
 
@@ -119,7 +119,7 @@ class SBIS26VISADRIVER:
 
         channel = channel
         if speed > 0 and range > 0 and acce > 0:
-            self._stage.write("D:D,{channel}," + f"+{speed},{range},{acce}")
+            self._stage.write("D:D,{channel}," + f"+{speed},{range},{acce}") #DK: format
             return self.read()
         else:
             print("NG")
@@ -153,4 +153,4 @@ class SBIS26VISADRIVER:
     def close(self):
         """Closes the stage."""
 
-        self.stage.close()
+        self.stage.close() #DK: stage should be _stage
