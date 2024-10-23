@@ -43,7 +43,7 @@ class SBIS26VISADriver:
         # self.stage = self.connect_to_stage(self.visa_address)  # DK: Delete.
 
     def connect_to_stage(self):
-        """Counts the number of stages connected.""" # DK/SG: Rename the method.
+        """Counts the number of stages connected.""" # DK/SG: Delete this. duplicated with count_devices.
 
         number = self._stage.ask("CONNECT?")
         logger.info("Connect to stage {}".format(number))
