@@ -9,7 +9,7 @@ from pymodaq.utils.logger import set_logger, get_module_name
 logger = set_logger(get_module_name(__file__))
 
 
-class SBIS26VISADRIVER:
+class SBIS26VISADriver:
     """VISA class driver for the OptoSigma stage SBIS26."""
 
     def __init__(self, rsrc_name):
@@ -17,8 +17,8 @@ class SBIS26VISADRIVER:
         # kwargs.setdefault("read_termination", "\r\n")
         self._instr = None
         self.rsrc_name = rsrc_name
-        # self.rsrc_list = self.rm.list_resources()
-        # self.visa_address = None
+        # self.rsrc_list = self.rm.list_resources() # DK: Delete. Defined in initialize method
+        # self.visa_address = None # DK: Delete. Not used.
         self.baud_rate = 38400
         self.max_position = 134217727 # DK: max is built in variable. Avoid hardcoding.
         self.min_position = -134217728
@@ -37,7 +37,7 @@ class SBIS26VISADRIVER:
         self._stage = rm.open_resource(self.rsrc_name)
         self._stage.read_termination = "\r\n"
         self._stage.baud_rate = self.baud_rate
-        self._stage.parity = pyvisa.constants .Parity.none
+        self._stage.parity = pyvisa.constants.Parity.none
         self._stage.stop_bits = pyvisa.constants.StopBits.one
 
         # self.stage = self.connect_to_stage(self.visa_address)  # DK: Delete.
@@ -73,7 +73,7 @@ class SBIS26VISADRIVER:
 
         pos_min = -134217728 # DK: Delete this. Use max_position and min_position defined above.
         pos_max = 134217727 # DK: Delete this. Use max_position and min_position defined above
-        if position >= pos_min and position <= pos_max:
+        if position >= pos_min and position <= pos_max: # DK/SG: I prefer to rely on this in GUI as designed in PyMoDAQ
             if position >= 0:
                 self._stage.write("A:D,{channel}," + f"{position}") # DK: use format like f"A:D,{channel}," + f"{position}". Same below.
             else:
@@ -93,8 +93,8 @@ class SBIS26VISADRIVER:
 
         pos_min = -134217728 # DK: Delete this. Use max_position and min_position defined above
         pos_max = 134217727 # DK: Delete this. Use max_position and min_position defined above
-        channel = channel
-        current_position = self.ask("Q:D,{channel}")
+        channel = channel # DK: Delete this. Not needed.
+        current_position = self.ask("Q:D,{channel}") #DK: format    w
         get_position = current_position.split(",")
         position = int(get_position[2])
         target_pos = position - pos
