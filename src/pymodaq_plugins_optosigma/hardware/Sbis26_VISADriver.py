@@ -8,6 +8,7 @@ from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
 
+
 class SBIS26VISADriver:
     """VISA class driver for the OptoSigma stage SBIS26."""
 
@@ -53,7 +54,8 @@ class SBIS26VISADriver:
     def count_devices(self):
         """Counts the number of devices connected."""
 
-        number = self._stage.read("CONNECT?")
+        number_str = self._stage.query("CONNECT?")
+        number = number_str.split(",")[1]
         logger.info(f"Connected to {number} stage(s)")
         return number
 
@@ -62,7 +64,7 @@ class SBIS26VISADriver:
         Returns (str): Information of the device.
         """
 
-        info = self._stage.read("*IDN?")
+        info = self._stage.query("*IDN?")
         return info
 
     def status(self, channel):
