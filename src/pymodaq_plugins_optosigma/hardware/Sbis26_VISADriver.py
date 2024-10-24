@@ -15,12 +15,12 @@ class SBIS26VISADriver:
     def __init__(self, rsrc_name):
 
         # kwargs.setdefault("read_termination", "\r\n")
-        self._instr = None
+        self._stage = None
         self.rsrc_name = rsrc_name
         # self.rsrc_list = self.rm.list_resources() # DK: Delete. Defined in initialize method
         # self.visa_address = None # DK: Delete. Not used.
-        self.baud_rate = 38400
-        # self.max_position = 134217727 # DK: max is built in variable. Avoid hardcoding.
+
+        # self.max_position = 134217727
         # self.min_position = -134217728
         # self.initialize()
 
@@ -35,11 +35,9 @@ class SBIS26VISADriver:
         #     self.visa_address, "read_termination", "\r\n", baud_rate=38400
         # )
         self._stage = rm.open_resource(self.rsrc_name)
-        self._stage.read_termination = "\r\n"
-        self._stage.baud_rate = self.baud_rate
-        self._stage.parity = pyvisa.constants.Parity.none
-        self._stage.stop_bits = pyvisa.constants.StopBits.one
-
+        self._stage.baud_rate = 38400
+        self._stage.write_termination = '\r\n'
+        self._stage.read_termination = '\r\n'
         self._stage.write("#CONNECT")
 
         # self.stage = self.connect_to_stage(self.visa_address)  # DK: Delete.
@@ -51,56 +49,64 @@ class SBIS26VISADriver:
     #     logger.info("Connect to stage {}".format(number))
     #     return self.read()
 
-    def count_devices(self):
-        """Counts the number of devices connected."""
+    # DK: this command would not work
+    # def count_devices(self):
+    #     """Counts the number of devices connected."""
+    #
+    #     number_str = self._stage.query("CONNECT?")
+    #     number = number_str.split(",")[1]
+    #     logger.info(f"Connected to {number} stage(s)")
+    #     return number
 
-        number_str = self._stage.query("CONNECT?")
-        number = number_str.split(",")[1]
-        logger.info(f"Connected to {number} stage(s)")
-        return number
-
-    def get_device_info(self):
-        """Gets the device information.
-        Returns (str): Information of the device.
-        """
-
-        info = self._stage.query("*IDN?")
-        return info
-
-    def status(self, channel):
+    def check_error(self, channel):
         """Gets the status of the stage.
+        Args:
+            channel (int): Channel of the stage.
         Returns (str): Status of the stage.
         """
-
         status = {"C": "Stopped by clockwise limit sensor detected.",
                   "W": "Stopped by counterclockwise limit sensor detected.",
                   "E": "Stopped by both of limit sensor.",
                   "K": "Normal"}
 
-        status_str = self._stage.read(f"Q:S,{channel}")
-        key = status_str.split(",")[3]
-        return status[key]
+        while True:
+            self._stage.query(f"SRQ:D,{channel}")
+            error_str = self._stage.query(f"SRQ:D,{channel}")
+            key = error_str.split(",")[3]
+            if key in status:
+                channel_val = int(error_str.split(",")[1])
+                if channel_val == channel:
+                    return error_str[key]
+                else:
+                    continue
+            time.sleep(0.2)
 
-    # def read(self):
-    #     """Reads and returns the message from the stage.
-    #     Returns (str): Message from the stage.
-    #     """
-    #
-    #     msg = super().read()  # check for errors that have occured # DK: do not use super() because SBIS26VISADRIVER does not use any inheritance.
-    #     if msg[-1] == "NG":
-    #         print("Error")
-    #     return msg
+    def status(self, channel):
+        """Gets the status of the stage.
+        Args:
+            channel (int): Channel of the stage.
+        Returns (str): Status of the stage.
+        """
+        self._stage.query(f"SRQ:D,{channel}")
+        status_str = self._stage.query(f"SRQ:D,{channel}")
+        key = status_str.split(",")[-1]
+        return status_str[key]
 
     def get_position(self, channel):
         """Gets the position of the stage.
         Args:
             channel (int): Channel of the stage.
-        Returns (int): Position of the stage.
+        Returns (float): Position of the stage.
         """
-
-        position_str = self._stage.read(f"Q:D,{channel}")
-        position = position_str.split(",")[2]
-        return position
+        while True:
+            self._stage.query(f"Q:D,{channel}")
+            position_str = self._stage.query(f"Q:D,{channel}")
+            try:
+                position = float(position_str.split(",")[2])
+                return position
+            except ValueError:
+                time.sleep(0.2)
+                continue
 
     def move(self, position, channel):
         """Moves the stage to the specified position.
@@ -109,7 +115,10 @@ class SBIS26VISADriver:
             channel (int): Channel of the stage.
 
          """
-        self._stage.write(f"A:D,{channel},{position}")
+        if position >= 0:
+            self._stage.write(f"A:D,{channel},+{position}")
+        else:
+            self._stage.write(f"A:D,{channel},{position}")
         self.wait_for_ready()
 
         # # pos_min = -134217728 # DK: Delete this. Use max_position and min_position defined above.
@@ -132,7 +141,7 @@ class SBIS26VISADriver:
     def move_relative(self, position, channel):
         """Moves the stage to the specified relative position.
         Args:
-            pos (int): Relative position to move the stage to.
+            position (int): Relative position to move the stage to.
             channel (int): Channel of the stage.
         """
 
@@ -170,7 +179,7 @@ class SBIS26VISADriver:
             accel_t (int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
-        if speed_ini > 0 and speed_fin > speed_ini and accel_t > 0:
+        if 0 < speed_ini < speed_fin and accel_t > 0:
             self._stage.write(f"D:D,{channel},{speed_ini},{speed_fin},{accel_t}")  # DK: format
         else:
             logger.warning("Invalid parameters")
@@ -187,13 +196,13 @@ class SBIS26VISADriver:
         self._stage.write("LE:A")
         # return self.read()
 
-    def wait_for_ready(self):
+    def wait_for_ready(self, channel):
         """Waits for the stage to be ready."""
 
-        time0 = time()
-        while self.status() != "R":
+        time0 = time.time()
+        while self.status(channel) != "R":
             print(self.status())
-            time1 = time() - time0
+            time1 = time.time() - time0
             if time1 >= 60:
                 logger.warning("Timeout")
                 break
