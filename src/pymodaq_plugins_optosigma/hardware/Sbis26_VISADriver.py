@@ -1,9 +1,7 @@
 # Purpose: Driver code for SBIS26. This script will move the OptoSigma stage.
 
 import time
-import numpy as np
 import pyvisa
-# from pymodaq_plugins_optosigma import config
 from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
@@ -14,49 +12,18 @@ class SBIS26VISADriver:
 
     def __init__(self, rsrc_name):
 
-        # kwargs.setdefault("read_termination", "\r\n")
         self._stage = None
         self.rsrc_name = rsrc_name
-        # self.rsrc_list = self.rm.list_resources() # DK: Delete. Defined in initialize method
-        # self.visa_address = None # DK: Delete. Not used.
-
-        # self.max_position = 134217727
-        # self.min_position = -134217728
-        # self.initialize()
 
     def connect(self):
         """Initializes the stage."""
-        # self.ch_1 = config.CHANNELS[0] #sets the channels for the stage # DK: Delete. Config is wrong.
-        # self.ch_2 = config.CHANNELS[1] # DK: Delete.
-        # self.ch_2 = config.CHANNELS[2] # DK: Delete.
         rm = pyvisa.ResourceManager()
 
-        # self._stage = self.rm.open_resource( # DK: this style is wrong. Delete.
-        #     self.visa_address, "read_termination", "\r\n", baud_rate=38400
-        # )
         self._stage = rm.open_resource(self.rsrc_name)
         self._stage.baud_rate = 38400
         self._stage.write_termination = '\r\n'
         self._stage.read_termination = '\r\n'
         self._stage.write("#CONNECT")
-
-        # self.stage = self.connect_to_stage(self.visa_address)  # DK: Delete.
-
-    # def connect_to_stage(self):
-    #     """Counts the number of stages connected."""  # DK/SG: Delete this. duplicated with count_devices.
-    #
-    #     number = self._stage.read("CONNECT?")
-    #     logger.info("Connect to stage {}".format(number))
-    #     return self.read()
-
-    # DK: this command would not work
-    # def count_devices(self):
-    #     """Counts the number of devices connected."""
-    #
-    #     number_str = self._stage.query("CONNECT?")
-    #     number = number_str.split(",")[1]
-    #     logger.info(f"Connected to {number} stage(s)")
-    #     return number
 
     def check_error(self, channel):
         """Gets the status of the stage.
@@ -121,23 +88,6 @@ class SBIS26VISADriver:
             self._stage.write(f"A:D,{channel},{position}")
         self.wait_for_ready()
 
-        # # pos_min = -134217728 # DK: Delete this. Use max_position and min_position defined above.
-        # # pos_max = 134217727 # DK: Delete this. Use max_position and min_position defined above
-        # if position >= pos_min and position <= self.max_position: # DK/SG: I prefer to rely on this in GUI as designed in PyMoDAQ
-        #     if position >= 0:
-        #         self._stage.write(f"A:D,{channel}," + f"{position}") # DK: use format like f"A:D,{channel}," + f"{position}". Same below.
-        #     else:
-        #         self._stage.write(f"A:D,{channel}," + f"{position}") #DK: format
-        # else:
-        #     if position >= 0:
-        #         position = self.max_position
-        #         self._stage.write(f"A:D,{channel}," + f"{position}") #DK: format
-        #     else:
-        #         position = pos_min
-        #         self._stage.write(f"A:D,{channel}," + f"{position}") #DK: format
-        # self.wait_for_ready()
-        # return self.read()
-
     def move_relative(self, position, channel):
         """Moves the stage to the specified relative position.
         Args:
@@ -147,29 +97,6 @@ class SBIS26VISADriver:
 
         self._stage.write(f"M:D,{channel},{position}")
         self.wait_for_ready()
-
-        # # pos_min = -134217728 # DK: Delete this. Use max_position and min_position defined above
-        # # self.max_position = 134217727 # DK: Delete this. Use max_position and min_position defined above
-        # # channel = channel # DK: Delete this. Not needed.
-        # current_position = self.read("Q:D,{channel}") #DK: format    w
-        # get_position = current_position.split(",")
-        # position = int(get_position[2])
-        # target_pos = position - pos
-        #
-        # if target_pos >= pos_min and target_pos <= pos_max:
-        #     if pos >= 0:
-        #         self._stage.write(f"M:D,{channel}," + f"{pos}") #DK: format
-        #     else:
-        #         self._stage.write(f"M:D,{channel}," + f"{pos}") #DK: format
-        # else:
-        #     if pos >= 0:
-        #         pos = pos_max
-        #         self._stage.write(f"A:D,{channel}," + f"{pos}") #DK: format
-        #     else:
-        #         pos = pos_min
-        #         self._stage.write(f"A:D,{channel}," + f"{pos}") #DK: format
-        # self.wait_for_ready()
-        # return self.read()
 
     def set_speed(self, speed_ini, speed_fin, accel_t, channel):
         """Sets the speed of the stage.
@@ -183,18 +110,11 @@ class SBIS26VISADriver:
             self._stage.write(f"D:D,{channel},{speed_ini},{speed_fin},{accel_t}")  # DK: format
         else:
             logger.warning("Invalid parameters")
-        # # channel = channel
-        # if speed > 0 and range > 0 and acce > 0:
-        #     self._stage.write(f"D:D,{channel}," + f"+{speed},{range},{acce}") #DK: format
-        #     return self.read()
-        # else:
-        #     print("NG")
 
     def stop(self):
         """Stops the stage."""
 
         self._stage.write("LE:A")
-        # return self.read()
 
     def wait_for_ready(self, channel):
         """Waits for the stage to be ready."""
@@ -211,9 +131,7 @@ class SBIS26VISADriver:
     def home(self, channel):
         """ Sends the stage to the home position."""
         self._stage.write(f"H:D,{channel}")
-        # print("Moved home")
         self.wait_for_ready()
-        # return self.read()
 
     def close(self):
         """Closes the stage."""
