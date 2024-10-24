@@ -45,14 +45,14 @@ class SBIS26VISADriver:
     def connect_to_stage(self):
         """Counts the number of stages connected.""" # DK/SG: Delete this. duplicated with count_devices.
 
-        number = self._stage.ask("CONNECT?")
+        number = self._stage.read("CONNECT?")
         logger.info("Connect to stage {}".format(number))
         return self.read()
 
     def count_devices(self):
         """Counts the number of devices connected."""
 
-        number = self._stage.ask("CONNECT?")
+        number = self._stage.read("CONNECT?")
         return number
 
     def read(self):
@@ -71,55 +71,55 @@ class SBIS26VISADriver:
     def move(self, position, channel):
         """Moves the stage to the specified position."""
 
-        pos_min = -134217728 # DK: Delete this. Use max_position and min_position defined above.
-        pos_max = 134217727 # DK: Delete this. Use max_position and min_position defined above
+        # pos_min = -134217728 # DK: Delete this. Use max_position and min_position defined above.
+        # pos_max = 134217727 # DK: Delete this. Use max_position and min_position defined above
         if position >= pos_min and position <= pos_max: # DK/SG: I prefer to rely on this in GUI as designed in PyMoDAQ
             if position >= 0:
-                self._stage.write("A:D,{channel}," + f"{position}") # DK: use format like f"A:D,{channel}," + f"{position}". Same below.
+                self._stage.write(f"A:D,{channel}," + f"{position}") # DK: use format like f"A:D,{channel}," + f"{position}". Same below.
             else:
-                self._stage.write("A:D,{channel}," + f"{position}") #DK: format
+                self._stage.write(f"A:D,{channel}," + f"{position}") #DK: format
         else:
             if position >= 0:
                 position = pos_max
-                self._stage.write("A:D,{channel}," + f"{position}") #DK: format
+                self._stage.write(f"A:D,{channel}," + f"{position}") #DK: format
             else:
                 position = pos_min
-                self._stage.write("A:D,{channel}," + f"{position}") #DK: format
+                self._stage.write(f"A:D,{channel}," + f"{position}") #DK: format
         self.wait_for_ready()
         return self.read()
 
     def move_relative(self, pos, channel):
         """Moves the stage to the specified relative position."""
 
-        pos_min = -134217728 # DK: Delete this. Use max_position and min_position defined above
-        pos_max = 134217727 # DK: Delete this. Use max_position and min_position defined above
-        channel = channel # DK: Delete this. Not needed.
-        current_position = self.ask("Q:D,{channel}") #DK: format    w
+        # pos_min = -134217728 # DK: Delete this. Use max_position and min_position defined above
+        # pos_max = 134217727 # DK: Delete this. Use max_position and min_position defined above
+        # channel = channel # DK: Delete this. Not needed.
+        current_position = self.read("Q:D,{channel}") #DK: format    w
         get_position = current_position.split(",")
         position = int(get_position[2])
         target_pos = position - pos
 
         if target_pos >= pos_min and target_pos <= pos_max:
             if pos >= 0:
-                self._stage.write("M:D,{channel}," + f"{pos}") #DK: format
+                self._stage.write(f"M:D,{channel}," + f"{pos}") #DK: format
             else:
-                self._stage.write("M:D,{channel}," + f"{pos}") #DK: format
+                self._stage.write(f"M:D,{channel}," + f"{pos}") #DK: format
         else:
             if pos >= 0:
                 pos = pos_max
-                self._stage.write("A:D,{channel}," + f"{pos}") #DK: format
+                self._stage.write(f"A:D,{channel}," + f"{pos}") #DK: format
             else:
                 pos = pos_min
-                self._stage.write("A:D,{channel}," + f"{pos}") #DK: format
+                self._stage.write(f"A:D,{channel}," + f"{pos}") #DK: format
         self.wait_for_ready()
         return self.read()
 
     def set_speed(self, speed, range, acce, channel):
         """Sets the speed of the stage."""
 
-        channel = channel
+        # channel = channel
         if speed > 0 and range > 0 and acce > 0:
-            self._stage.write("D:D,{channel}," + f"+{speed},{range},{acce}") #DK: format
+            self._stage.write(f"D:D,{channel}," + f"+{speed},{range},{acce}") #DK: format
             return self.read()
         else:
             print("NG")
@@ -145,7 +145,7 @@ class SBIS26VISADriver:
     def home(self, channel):
         """ Sends the stage to the home position."""
         self._stage.write(f"H:D,{channel}")
-        print("Moved home")
+        # print("Moved home")
         self.wait_for_ready()
         return self.read()
 
