@@ -34,14 +34,16 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
 
     """
     # DK - use the multiaxis feature with dictionary format {"X":1, ...}
-    # DK - It may be good to use 'm' unit to apply _controller_units feature.
     is_multiaxes = False  # TODO for your plugin set to True if this plugin is controlled for a multiaxis controller
     _axis_names: Union[List[str], Dict[str, int]] = ['Axis1', 'Axis2']  # TODO for your plugin: complete the list
-    _controller_units: Union[str, List[str]] = 'mm'  # TODO for your plugin: put the correct unit here, it could be
+    # DK - It may be good to use 'm' unit to apply _controller_units feature. I am afraid that mm becomes kilo micrometers k um
+    _controller_units: Union[str, List[str]] = 'um'  # TODO for your plugin: put the correct unit here, it could be
     # TODO  a single str (the same one is applied to all axes) or a list of str (as much as the number of axes)
+    # DK - Consider that the minimum increment of the stage is 50 nm. Then the epsilon should be ... ?
     _epsilon: Union[
         float, List[float]] = 0.1  # TODO replace this by a value that is correct depending on your controller
     # TODO it could be a single float of a list of float (as much as the number of axes)
+    # Leave this as it is.
     data_actuator_type = DataActuatorType.DataActuator  # wether you use the new data style for actuator otherwise set this
     # as  DataActuatorType.float  (or entirely remove the line)
 
@@ -59,20 +61,20 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         # self.panel = None
         # self.instr = None
 
-        def get_actuator_value(self):
-            """Get the current value from the hardware with scaling conversion.
+    # DK data = self.controller.get_position(self.axis_value) See example in https://github.com/nano713/pymodaq_plugins_thorlabs/blob/dev/kpz_plugin/src/pymodaq_plugins_thorlabs/daq_move_plugins/daq_move_BrushlessDCMotor.py
+    def get_actuator_value(self):
+        """Get the current value from the hardware with scaling conversion.
 
-            Returns
-            -------
-            float: The position obtained after scaling conversion.
-            """
-            ## TODO for your custom plugin
-            # DK data = self.controller.get_position(self.axis_value) See example in https://github.com/nano713/pymodaq_plugins_thorlabs/blob/dev/kpz_plugin/src/pymodaq_plugins_thorlabs/daq_move_plugins/daq_move_BrushlessDCMotor.py
-            raise NotImplemented  # when writing your own plugin remove this line
-            pos = DataActuator(
-                data=self.controller.your_method_to_get_the_actuator_value())  # when writing your own plugin replace this line
-            pos = self.get_position_with_scaling(pos)
-            return pos
+        Returns
+        -------
+        float: The position obtained after scaling conversion.
+        """
+        ## TODO for your custom plugin
+        raise NotImplemented  # when writing your own plugin remove this line
+        pos = DataActuator(
+            data=self.controller.your_method_to_get_the_actuator_value())  # when writing your own plugin replace this line
+        pos = self.get_position_with_scaling(pos)
+        return pos
 
         # DK - delete as instructed
         def user_condition_to_reach_target(self) -> bool:
