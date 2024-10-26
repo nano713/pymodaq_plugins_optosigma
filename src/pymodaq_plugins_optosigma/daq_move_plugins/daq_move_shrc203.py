@@ -1,8 +1,7 @@
-from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType,\
-    DataActuator  # common set of parameters for all actuators
+from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuator  # common set of parameters for all actuators
 from pymodaq.utils.daq_utils import ThreadCommand # object used to send info back to the main thread
 from pymodaq.utils.parameter import Parameter
-from pymodaq_plugins_optosigma.hardware.shrc203.shrc203_VISADriver import SHRC203VISADriver
+from pymodaq_plugins_optosigma.hardware.shrc203_VISADriver import SHRC203VISADriver
 from pymodaq.utils.logger import set_logger, get_module_name
 logger = set_logger(get_module_name(__file__))
 
