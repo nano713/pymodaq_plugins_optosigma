@@ -76,129 +76,129 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         pos = self.get_position_with_scaling(pos)
         return pos
 
-        # DK - delete as instructed
-        def user_condition_to_reach_target(self) -> bool:
-            """ Implement a condition for exiting the polling mechanism and specifying that the
-            target value has been reached
+    # DK - delete as instructed
+    def user_condition_to_reach_target(self) -> bool:
+        """ Implement a condition for exiting the polling mechanism and specifying that the
+        target value has been reached
 
-           Returns
-            -------
-            bool: if True, PyMoDAQ considers the target value has been reached
-            """
-            # TODO either delete this method if the usual polling is fine with you, but if need you can
-            #  add here some other condition to be fullfilled either a completely new one or
-            #  using or/and operations between the epsilon_bool and some other custom booleans
-            #  for a usage example see DAQ_Move_brushlessMotor from the Thorlabs plugin
-            return True
+       Returns
+        -------
+        bool: if True, PyMoDAQ considers the target value has been reached
+        """
+        # TODO either delete this method if the usual polling is fine with you, but if need you can
+        #  add here some other condition to be fullfilled either a completely new one or
+        #  using or/and operations between the epsilon_bool and some other custom booleans
+        #  for a usage example see DAQ_Move_brushlessMotor from the Thorlabs plugin
+        return True
 
-        # run close method
-        def close(self):
-            """Terminate the communication protocol"""
-            ## TODO for your custom plugin
-            raise NotImplemented  # when writing your own plugin remove this line
-            #  self.controller.your_method_to_terminate_the_communication()  # when writing your own plugin replace this line
+    # run close method
+    def close(self):
+        """Terminate the communication protocol"""
+        ## TODO for your custom plugin
+        raise NotImplemented  # when writing your own plugin remove this line
+        #  self.controller.your_method_to_terminate_the_communication()  # when writing your own plugin replace this line
 
-        # DK - implement speed, loop, ...
-        def commit_settings(self, param: Parameter):
-            """Apply the consequences of a change of value in the detector settings
+    # DK - implement speed, loop, ...
+    def commit_settings(self, param: Parameter):
+        """Apply the consequences of a change of value in the detector settings
 
-            Parameters
-            ----------
-            param: Parameter
-                A given parameter (within detector_settings) whose value has been changed by the user
-            """
-            ## TODO for your custom plugin
-            if param.name() == 'axis':
-                self.axis_unit = self.controller.your_method_to_get_correct_axis_unit()
-                # do this only if you can and if the units are not known beforehand, for instance
-                # if the motors connected to the controller are of different type (mm, µm, nm, , etc...)
-                # see BrushlessDCMotor from the thorlabs plugin for an exemple
+        Parameters
+        ----------
+        param: Parameter
+            A given parameter (within detector_settings) whose value has been changed by the user
+        """
+        ## TODO for your custom plugin
+        if param.name() == 'axis':
+            self.axis_unit = self.controller.your_method_to_get_correct_axis_unit()
+            # do this only if you can and if the units are not known beforehand, for instance
+            # if the motors connected to the controller are of different type (mm, µm, nm, , etc...)
+            # see BrushlessDCMotor from the thorlabs plugin for an exemple
 
-            elif param.name() == "a_parameter_you've_added_in_self.params":
-                self.controller.your_method_to_apply_this_param_change()
-            else:
-                pass
+        elif param.name() == "a_parameter_you've_added_in_self.params":
+            self.controller.your_method_to_apply_this_param_change()
+        else:
+            pass
 
-        # DK - run self.controller = SHRC203VISADriver(rsrc_name) if self.is_master = True
-        def ini_stage(self, controller=None):
-            """Actuator communication initialization
+    # DK - run self.controller = SHRC203VISADriver(rsrc_name) if self.is_master = True
+    def ini_stage(self, controller=None):
+        """Actuator communication initialization
 
-            Parameters
-            ----------
-            controller: (object)
-                custom object of a PyMoDAQ plugin (Slave case). None if only one actuator by controller (Master case)
+        Parameters
+        ----------
+        controller: (object)
+            custom object of a PyMoDAQ plugin (Slave case). None if only one actuator by controller (Master case)
 
-            Returns
-            -------
-            info: str
-            initialized: bool
-                False if initialization failed otherwise True
-            """
-            raise NotImplemented  # TODO when writing your own plugin remove this line and modify the ones below
-            self.ini_stage_init(slave_controller=controller)  # will be useful when controller is slave
+        Returns
+        -------
+        info: str
+        initialized: bool
+            False if initialization failed otherwise True
+        """
+        raise NotImplemented  # TODO when writing your own plugin remove this line and modify the ones below
+        self.ini_stage_init(slave_controller=controller)  # will be useful when controller is slave
 
-            if self.is_master:  # is needed when controller is master
-                self.controller = PythonWrapperOfYourInstrument(arg1, arg2, ...)  # arguments for instantiation!)
-                # todo: enter here whatever is needed for your controller initialization and eventual
-                #  opening of the communication channel
+        if self.is_master:  # is needed when controller is master
+            self.controller = PythonWrapperOfYourInstrument(arg1, arg2, ...)  # arguments for instantiation!)
+            # todo: enter here whatever is needed for your controller initialization and eventual
+            #  opening of the communication channel
 
-            info = "Whatever info you want to log" # DK - replace this line with the actual info
-            initialized = self.controller.a_method_or_atttribute_to_check_if_init()  # initialized = True
-            return info, initialized
+        info = "Whatever info you want to log" # DK - replace this line with the actual info
+        initialized = self.controller.a_method_or_atttribute_to_check_if_init()  # initialized = True
+        return info, initialized
 
-        # DK - use move method
-        def move_abs(self, value: DataActuator):
-            """ Move the actuator to the absolute target defined by value
+    # DK - use move method
+    def move_abs(self, value: DataActuator):
+        """ Move the actuator to the absolute target defined by value
 
-            Parameters
-            ----------
-            value: (float) value of the absolute target positioning
-            """
+        Parameters
+        ----------
+        value: (float) value of the absolute target positioning
+        """
 
-            value = self.check_bound(value)  # if user checked bounds, the defined bounds are applied here
-            self.target_value = value
-            value = self.set_position_with_scaling(value)  # apply scaling if the user specified one
-            ## TODO for your custom plugin
-            raise NotImplemented  # when writing your own plugin remove this line
-            self.controller.your_method_to_set_an_absolute_value(
-                value.value())  # when writing your own plugin replace this line
-            self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
+        value = self.check_bound(value)  # if user checked bounds, the defined bounds are applied here
+        self.target_value = value
+        value = self.set_position_with_scaling(value)  # apply scaling if the user specified one
+        ## TODO for your custom plugin
+        raise NotImplemented  # when writing your own plugin remove this line
+        self.controller.your_method_to_set_an_absolute_value(
+            value.value())  # when writing your own plugin replace this line
+        self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
 
-        # DK - use move_relative method
-        def move_rel(self, value: DataActuator):
-            """ Move the actuator to the relative target actuator value defined by value
+    # DK - use move_relative method
+    def move_rel(self, value: DataActuator):
+        """ Move the actuator to the relative target actuator value defined by value
 
-            Parameters
-            ----------
-            value: (float) value of the relative target positioning
-            """
-            value = self.check_bound(self.current_position + value) - self.current_position
-            self.target_value = value + self.current_position
-            value = self.set_position_relative_with_scaling(value)
+        Parameters
+        ----------
+        value: (float) value of the relative target positioning
+        """
+        value = self.check_bound(self.current_position + value) - self.current_position
+        self.target_value = value + self.current_position
+        value = self.set_position_relative_with_scaling(value)
 
-            ## TODO for your custom plugin
-            raise NotImplemented  # when writing your own plugin remove this line
-            self.controller.your_method_to_set_a_relative_value(
-                value.value())  # when writing your own plugin replace this line
-            self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
+        ## TODO for your custom plugin
+        raise NotImplemented  # when writing your own plugin remove this line
+        self.controller.your_method_to_set_a_relative_value(
+            value.value())  # when writing your own plugin replace this line
+        self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
 
-        # DK - use home method
-        def move_home(self):
-            """Call the reference method of the controller"""
+    # DK - use home method
+    def move_home(self):
+        """Call the reference method of the controller"""
 
-            ## TODO for your custom plugin
-            raise NotImplemented  # when writing your own plugin remove this line
-            self.controller.your_method_to_get_to_a_known_reference()  # when writing your own plugin replace this line
-            self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
+        ## TODO for your custom plugin
+        raise NotImplemented  # when writing your own plugin remove this line
+        self.controller.your_method_to_get_to_a_known_reference()  # when writing your own plugin replace this line
+        self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
 
-        # DK - use stop method
-        def stop_motion(self):
-            """Stop the actuator and emits move_done signal"""
+    # DK - use stop method
+    def stop_motion(self):
+        """Stop the actuator and emits move_done signal"""
 
-            ## TODO for your custom plugin
-            raise NotImplemented  # when writing your own plugin remove this line
-            self.controller.your_method_to_stop_positioning()  # when writing your own plugin replace this line
-            self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
+        ## TODO for your custom plugin
+        raise NotImplemented  # when writing your own plugin remove this line
+        self.controller.your_method_to_stop_positioning()  # when writing your own plugin replace this line
+        self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
 
     if __name__ == '__main__':
         main(__file__)
