@@ -13,6 +13,9 @@ class SBIS26VISADriver:
 
         self._stage = None
         self.rsrc_name = rsrc_name
+        self.speed_ini = None
+        self.speed_fin = None 
+        self.accel_t = None
 
     def connect(self):
         """Initializes the stage."""
@@ -105,10 +108,17 @@ class SBIS26VISADriver:
             accel_t (int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
+        self.speed_ini = speed_ini
+        self.speed_fin = speed_fin
+        self.accel_t = accel_t
         if 0 < speed_ini < speed_fin and accel_t > 0:
             self._stage.write(f"D:D,{channel},{speed_ini},{speed_fin},{accel_t}") 
         else:
             logger.warning("Invalid parameters")
+
+    def get_speed(self, channel):
+        """Gets the speed of the stage."""
+        return self.speed_ini, self.speed_fin, self.accel_t
 
     def stop(self):
         """Stops the stage."""
