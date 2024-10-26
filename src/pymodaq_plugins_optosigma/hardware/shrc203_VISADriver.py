@@ -79,18 +79,20 @@ class SHRC203VISADriver:
             self._instr.write_termination = "\r\n"
             self._instr.read_termination = "\r\n"
             # self._instr.write                need to check this command to connect
-            logger.info(f"Connection to {self.instr} successful")
+            logger.info(f"Connection to {self._instr} successful")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
 
-    def set_loop(self, channel, loop):
+    def set_loop(self, channel, loop): # DK - the order of the attributes should be consistent across the methods.
+        # Either channel-> others or others -> channel. e.g., the order in this method is inconsistent with move method
         """
         Open the loop of the specified channel.
         1: Open loop
         0: Close loop
         """
 
-        self._instr.write(f":F{channel}:" + f"{loop}")
+        self._instr.write(f":F{channel}:" + f"{loop}") # DK should be f":F{channel}:{loop}" to make it concise. Apply
+        # to the rest of lines
         logger.info(f"Channel {channel} loop set to {loop}")
 
     def get_loop(self, channel):
@@ -110,7 +112,7 @@ class SHRC203VISADriver:
             self._instr.write(f"A:{channel}:" + f"-P%{abs(position)}")
         self._instr.write("G:")
         self.wait_for_stop()
-        return self.read_state(channel)
+        # return self.read_state(channel) DK - do not return. use logger.debug("...")
 
     def set_speed(self, speed_inital, speed_final, accel, channel):
         """Sets the speed of the stage.
@@ -120,10 +122,19 @@ class SHRC203VISADriver:
             accel (int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
-        if 0 < speed_inital < speed_final and accel > 0:
+        self.speed_inital = speed_inital # DK - follow SBIS26.
+        self... # DK - follow SBIS26.
+
+        if 0 < speed_inital < speed_final and accel > 0: # DK - follow SBIS26.
             self._instr.write(f"D:{channel},{speed_inital},{speed_final},{accel}")
         else:
             Exception("Invalid parameters")
+
+    # DK - Implement the following methods
+    def get_speed(self, channel):
+        """Get the speed of the stage."""
+        # DK - write the command to get the speed of the stage
+        pass
 
     def move_relative(self, position, speed, channel):
         """Move the stage to a relative position."""
@@ -144,6 +155,7 @@ class SHRC203VISADriver:
         self._instr.write(f"H:{channel}")
         return self.read_state(channel)
 
+    # DK - Use the same method name as in the SBIS26
     def wait_for_stop(self, channel):
         """Wait for the stage to stop moving."""
         time0 = time.time()
