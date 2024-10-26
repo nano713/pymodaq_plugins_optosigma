@@ -115,10 +115,11 @@ class SHRC203VISADriver:
         # return self.read_state(channel) DK - Delete. This duplicates the information with wait_for_stop(). Delete the rest of the duplicated information
 
     def get_position(self, channel):
-        # DK - write the command to get the position of the stage. Use query() method
+        # DK - write the command to get the position of the stage. Use query() method.
+        # See the example in the SBIS26
         pass
 
-
+    # DK - use the same method name as in the SBIS26: speed_ini or rename the variables in sbis26.
     def set_speed(self, speed_inital, speed_final, accel, channel):
         """Sets the speed of the stage.
         Args:
@@ -127,6 +128,7 @@ class SHRC203VISADriver:
             accel (int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
+        # DK - typo: speed_inital -> speed_initial or speed_ini
         self.speed_inital = speed_inital # DK - follow SBIS26. Write other variables
 
         if 0 < speed_inital < speed_final and accel > 0: # DK - follow SBIS26.
@@ -184,7 +186,7 @@ class SHRC203VISADriver:
         state = self._instr.query(f"!:{channel}S")
         return state
 
+    # DK - close resource manager
     def close(self):
         """Close the connection with the controller."""
-        # DK - close resource manager
         pass
