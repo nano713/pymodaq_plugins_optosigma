@@ -116,7 +116,7 @@ class SBIS26VISADriver:
         else:
             logger.warning("Invalid parameters")
 
-    def get_speed(self, channel):
+    def get_speed(self):
         """Gets the speed of the stage."""
         return self.speed_ini, self.speed_fin, self.accel_t
 
