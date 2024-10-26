@@ -6,6 +6,46 @@ from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
 
+# DK - reuse this class that we wrote in pymeasure instruments. See an example: https://github.com/nano713/pymeasure/blob/dev/sbis26/pymeasure/instruments/newport/esp300.py
+class AxisError(Exception):
+    """
+    Raised when a particular axis causes an error for OptoSigma SHRC-203.
+
+    """
+
+    MESSAGES = {
+        '1': 'Normal (S1 to S10 and emergency stop has not occurred)',
+        '3': 'Command error',
+        '7': 'Scale error (S1)',
+        'F': 'Disconnection error (S2)',
+        '1F': 'Overflow error (S4)',
+        '3F': 'Emergency stop',
+        '7F': 'Hunting error (S3)',
+        'FF': 'Limit error (S5)',
+        '1FF': 'Counter overflow (S6)',
+        '3FF': 'Auto config error',
+        '7FF': '24V IO overload warning (W1)',
+        'FFF': '24V terminal block overload warning (W2)',
+        '1FFF': 'System error (S7)',
+        '3FFF': 'Motor driver overheat warning (W3)',
+        '7FFF': 'Motor driver overheat error (S10)',
+        'FFFF': 'Out of in-position range   (after positioning is completed) (READY)',
+        '1FFFF': 'Out of in-position range (During positioning operation) (BUSY)',
+        '3FFFF': 'Logical origin return is in progress',
+        '7FFFF': 'Mechanical origin return is in progress',
+        'FFFFF': 'CW limit detection',
+        '1FFFFF': 'CCW limit detection',
+        '3FFFFF': 'CW software limit stop',
+        '7FFFFF': 'CCW software limit stop',
+        'FFFFFF': 'NEAR sensor detection',
+        '1FFFFFF': 'ORG sensor detection',
+    }
+
+    def __init__(self, code):
+        self.message = self.MESSAGES[code]
+
+    def __str__(self):
+        return f"OptoSigma SHRC-203 Error: {self.message}"
 
 class SHRC203VISADriver:
     """
@@ -18,6 +58,14 @@ class SHRC203VISADriver:
         """
         self._instr = None
         self.rsrc_name = rsrc_name
+
+    def check_error(self, channel):
+        """
+        Check if there is an error in the specified channel.
+        """
+        error = self._instr.query(f"?:{channel}E") # DK - correct the command
+        if error != "1":
+            return AxisError(error)
 
     def open_connection(self):  # probably don't need this
         """
