@@ -8,6 +8,9 @@ from pymodaq_plugins_optosigma.hardware.shrc203_VISADriver import SHRC203VISADri
 from pymodaq.utils.logger import set_logger, get_module_name
 logger = set_logger(get_module_name(__file__))
 
+# DK - follow the naming convention. this file name should be daq_move_SHRC203. See
+# https://pymodaq.cnrs.fr/en/4.4.x/developer_folder/instrument_plugins.html#naming-convention.
+
 class DAQ_Move_SHRC203(DAQ_Move_base):
     """ Instrument plugin class for an actuator.
 
@@ -30,6 +33,8 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     # TODO add your particular attributes here if any
 
     """
+    # DK - use the multiaxis feature with dictionary format {"X":1, ...}
+    # DK - It may be good to use 'm' unit to apply _controller_units feature.
     is_multiaxes = False  # TODO for your plugin set to True if this plugin is controlled for a multiaxis controller
     _axis_names: Union[List[str], Dict[str, int]] = ['Axis1', 'Axis2']  # TODO for your plugin: complete the list
     _controller_units: Union[str, List[str]] = 'mm'  # TODO for your plugin: put the correct unit here, it could be
@@ -40,6 +45,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     data_actuator_type = DataActuatorType.DataActuator  # wether you use the new data style for actuator otherwise set this
     # as  DataActuatorType.float  (or entirely remove the line)
 
+    # DK - create 'rsrc_name', 'speed_ini', 'speed...', 'loop' parameters where the speed parameter has children (= list)
     params = [  # TODO for your custom plugin: elements to be added here as dicts in order to control your custom stage
              ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
@@ -61,12 +67,14 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             float: The position obtained after scaling conversion.
             """
             ## TODO for your custom plugin
+            # DK data = self.controller.get_position(self.axis_value) See example in https://github.com/nano713/pymodaq_plugins_thorlabs/blob/dev/kpz_plugin/src/pymodaq_plugins_thorlabs/daq_move_plugins/daq_move_BrushlessDCMotor.py
             raise NotImplemented  # when writing your own plugin remove this line
             pos = DataActuator(
                 data=self.controller.your_method_to_get_the_actuator_value())  # when writing your own plugin replace this line
             pos = self.get_position_with_scaling(pos)
             return pos
 
+        # DK - delete as instructed
         def user_condition_to_reach_target(self) -> bool:
             """ Implement a condition for exiting the polling mechanism and specifying that the
             target value has been reached
@@ -81,12 +89,14 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             #  for a usage example see DAQ_Move_brushlessMotor from the Thorlabs plugin
             return True
 
+        # run close method
         def close(self):
             """Terminate the communication protocol"""
             ## TODO for your custom plugin
             raise NotImplemented  # when writing your own plugin remove this line
             #  self.controller.your_method_to_terminate_the_communication()  # when writing your own plugin replace this line
 
+        # DK - implement speed, loop, ...
         def commit_settings(self, param: Parameter):
             """Apply the consequences of a change of value in the detector settings
 
@@ -107,6 +117,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             else:
                 pass
 
+        # DK - run self.controller = SHRC203VISADriver(rsrc_name) if self.is_master = True
         def ini_stage(self, controller=None):
             """Actuator communication initialization
 
@@ -129,10 +140,11 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
                 # todo: enter here whatever is needed for your controller initialization and eventual
                 #  opening of the communication channel
 
-            info = "Whatever info you want to log"
-            initialized = self.controller.a_method_or_atttribute_to_check_if_init()  # todo
+            info = "Whatever info you want to log" # DK - replace this line with the actual info
+            initialized = self.controller.a_method_or_atttribute_to_check_if_init()  # initialized = True
             return info, initialized
 
+        # DK - use move method
         def move_abs(self, value: DataActuator):
             """ Move the actuator to the absolute target defined by value
 
@@ -150,6 +162,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
                 value.value())  # when writing your own plugin replace this line
             self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
 
+        # DK - use move_relative method
         def move_rel(self, value: DataActuator):
             """ Move the actuator to the relative target actuator value defined by value
 
@@ -167,6 +180,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
                 value.value())  # when writing your own plugin replace this line
             self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
 
+        # DK - use home method
         def move_home(self):
             """Call the reference method of the controller"""
 
@@ -175,6 +189,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             self.controller.your_method_to_get_to_a_known_reference()  # when writing your own plugin replace this line
             self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
 
+        # DK - use stop method
         def stop_motion(self):
             """Stop the actuator and emits move_done signal"""
 

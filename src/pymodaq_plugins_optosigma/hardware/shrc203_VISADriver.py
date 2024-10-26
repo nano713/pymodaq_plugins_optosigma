@@ -112,7 +112,12 @@ class SHRC203VISADriver:
             self._instr.write(f"A:{channel}:" + f"-P%{abs(position)}")
         self._instr.write("G:")
         self.wait_for_stop()
-        # return self.read_state(channel) DK - do not return. use logger.debug("...")
+        # return self.read_state(channel) DK - Delete. This duplicates the information with wait_for_stop(). Delete the rest of the duplicated information
+
+    def get_position(self, channel):
+        # DK - write the command to get the position of the stage. Use query() method
+        pass
+
 
     def set_speed(self, speed_inital, speed_final, accel, channel):
         """Sets the speed of the stage.
@@ -122,8 +127,7 @@ class SHRC203VISADriver:
             accel (int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
-        self.speed_inital = speed_inital # DK - follow SBIS26.
-        self... # DK - follow SBIS26.
+        self.speed_inital = speed_inital # DK - follow SBIS26. Write other variables
 
         if 0 < speed_inital < speed_final and accel > 0: # DK - follow SBIS26.
             self._instr.write(f"D:{channel},{speed_inital},{speed_final},{accel}")
@@ -136,7 +140,7 @@ class SHRC203VISADriver:
         # DK - write the command to get the speed of the stage
         pass
 
-    def move_relative(self, position, speed, channel):
+    def move_relative(self, position, channel):
         """Move the stage to a relative position."""
         if position >= 0:
             self._instr.write(
@@ -155,12 +159,12 @@ class SHRC203VISADriver:
         self._instr.write(f"H:{channel}")
         return self.read_state(channel)
 
-    # DK - Use the same method name as in the SBIS26
+    # DK - Use the same method name as in the SBIS26: wait_for_ready
     def wait_for_stop(self, channel):
         """Wait for the stage to stop moving."""
         time0 = time.time()
         while self.read_state(channel) != "R":
-            print(self.status())
+            print(self.status()) # DK - make sure you delete print() at the end
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.warning("Timeout")
@@ -179,3 +183,8 @@ class SHRC203VISADriver:
         R: Ready"""
         state = self._instr.query(f"!:{channel}S")
         return state
+
+    def close(self):
+        """Close the connection with the controller."""
+        # DK - close resource manager
+        pass
