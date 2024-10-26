@@ -100,7 +100,7 @@ class SBIS26VISADriver:
         self._stage.write(f"M:D,{channel},{position}")
         self.wait_for_ready()
 
-    def set_speed(self, speed_ini, speed_fin, accel_t, channel):
+    def set_speed(self, speed_ini, speed_fin, accel_t):
         """Sets the speed of the stage.
         Args:
             speed_ini (int): Initial speed of the stage.
@@ -112,7 +112,7 @@ class SBIS26VISADriver:
         self.speed_fin = speed_fin
         self.accel_t = accel_t
         if 0 < speed_ini < speed_fin and accel_t > 0:
-            self._stage.write(f"D:D,{channel},{speed_ini},{speed_fin},{accel_t}") 
+            self._stage.write(f"D:A,{speed_ini},{speed_fin},{accel_t}")
         else:
             logger.warning("Invalid parameters")
 
