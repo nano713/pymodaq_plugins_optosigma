@@ -63,11 +63,13 @@ class SHRC203VISADriver:
         """
         Check if there is an error in the specified channel.
         """
-        error = self._instr.query(f"?:{channel}E") # DK - correct the command
+        error = self._instr.ask(f"SRQ:{channel}S")
+        error = error.split(",")[0]
         if error != "1":
             return AxisError(error)
 
     def open_connection(self):  # probably don't need this
+                                #AD: SBIS26VISADriver has a connect method. A similar format is used to initialize the connection. 
         """
         Open the connection with the controller.
         """
@@ -100,7 +102,7 @@ class SHRC203VISADriver:
         logger.info(f"Channel {channel} loop status: {loop}")
         return loop
 
-    def move(self, position, channel):  # recheck this method
+    def move(self, position, channel): 
         """
         Move the specified channel to the position.
         """
@@ -110,7 +112,6 @@ class SHRC203VISADriver:
             self._instr.write(f"A:{channel}:" + f"-P%{abs(position)}")
         self._instr.write("G:")
         self.wait_for_ready()
-        # return self.read_state(channel) DK - Delete. This duplicates the information with wait_for_stop(). Delete the rest of the duplicated information
 
     def get_position(self, channel):
         while True:
@@ -123,21 +124,6 @@ class SHRC203VISADriver:
                 time.sleep(0.2)
                 continue
     
-    def get_position(self, channel):
-        """Gets the position of the stage.
-        Args:
-            channel (int): Channel of the stage.
-        Returns (float): Position of the stage.
-        """
-        while True:
-            self._stage.query(f"Q:D,{channel}")
-            position_str = self._stage.query(f"Q:D,{channel}")
-            try:
-                position = float(position_str.split(",")[2])
-                return position
-            except ValueError:
-                time.sleep(0.2)
-                continue
     def set_speed(self, speed_ini, speed_fin, accel, channel):
         """Sets the speed of the stage.
         Args:
@@ -147,7 +133,8 @@ class SHRC203VISADriver:
             channel (int): Channel of the stage.
         """
         
-        self.speed_ini = speed_ini # DK - follow SBIS26. Write other variables
+         # DK - follow SBIS26. Write other variables. 
+         # AD: Placeholder in case we need to implement the variables to get the speed
 
         if 0 < speed_ini < speed_fin and accel > 0: # DK - follow SBIS26.
             self._instr.write(f"D:{channel},{speed_ini},{speed_fin},{accel}")
