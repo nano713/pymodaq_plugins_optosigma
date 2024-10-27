@@ -78,7 +78,6 @@ class SHRC203VISADriver:
             self._instr.parity = visa.constants.Parity.none
             self._instr.write_termination = "\r\n"
             self._instr.read_termination = "\r\n"
-            # self._instr.write                need to check this command to connect
             logger.info(f"Connection to {self._instr} successful")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
@@ -118,7 +117,7 @@ class SHRC203VISADriver:
         # See the example in the SBIS26
         pass
 
-    # DK - use the same method name as in the SBIS26: speed_ini or rename the variables in sbis26.
+    
     def set_speed(self, speed_ini, speed_fin, accel, channel):
         """Sets the speed of the stage.
         Args:
@@ -127,7 +126,7 @@ class SHRC203VISADriver:
             accel (int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
-        # DK - typo: speed_inital -> speed_initial or speed_ini
+        
         self.speed_ini = speed_ini # DK - follow SBIS26. Write other variables
 
         if 0 < speed_ini < speed_fin and accel > 0: # DK - follow SBIS26.
@@ -138,19 +137,20 @@ class SHRC203VISADriver:
     # DK - Implement the following methods
     def get_speed(self, channel):
         """Get the speed of the stage."""
-        # DK - write the command to get the speed of the stage
-        pass
+        speed = self._instr.query(f"?:D{channel}")
+        logger.info(f"Channel {channel} speed: {speed}")
+        return speed
 
     def move_relative(self, position, channel):
         """Move the stage to a relative position."""
         if position >= 0:
             self._instr.write(
                 f"M:{channel}" + f"+P{position}"
-            )  # check this command. Speed should be incorporated
+            )  
         else:
             self._instr.write(
                 f"M:{channel}" + f"-P%{abs(position)}"
-            )  # check this command. Speed should be incorporated
+            )  
         self._instr.write("G:")
         self.wait_for_ready()
         return self.read_state(channel)
@@ -160,7 +160,7 @@ class SHRC203VISADriver:
         self._instr.write(f"H:{channel}")
         return self.read_state(channel)
 
-    # DK - Use the same method name as in the SBIS26: wait_for_ready
+    
     def wait_for_ready(self, channel):
         """Wait for the stage to stop moving."""
         time0 = time.time()
