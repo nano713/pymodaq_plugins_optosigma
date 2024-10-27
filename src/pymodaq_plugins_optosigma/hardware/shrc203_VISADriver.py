@@ -83,7 +83,7 @@ class SHRC203VISADriver:
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
 
-    def set_loop(self, channel, loop): # DK - the order of the attributes should be consistent across the methods.
+    def set_loop(self, loop, channel): # DK - the order of the attributes should be consistent across the methods.
         # Either channel-> others or others -> channel. e.g., the order in this method is inconsistent with move method
         """
         Open the loop of the specified channel.
@@ -91,8 +91,7 @@ class SHRC203VISADriver:
         0: Close loop
         """
 
-        self._instr.write(f":F{channel}:" + f"{loop}") # DK should be f":F{channel}:{loop}" to make it concise. Apply
-        # to the rest of lines
+        self._instr.write(f":F{channel}:{loop}") 
         logger.info(f"Channel {channel} loop set to {loop}")
 
     def get_loop(self, channel):
@@ -111,7 +110,7 @@ class SHRC203VISADriver:
         else:
             self._instr.write(f"A:{channel}:" + f"-P%{abs(position)}")
         self._instr.write("G:")
-        self.wait_for_stop()
+        self.wait_for_ready()
         # return self.read_state(channel) DK - Delete. This duplicates the information with wait_for_stop(). Delete the rest of the duplicated information
 
     def get_position(self, channel):
@@ -120,7 +119,7 @@ class SHRC203VISADriver:
         pass
 
     # DK - use the same method name as in the SBIS26: speed_ini or rename the variables in sbis26.
-    def set_speed(self, speed_inital, speed_final, accel, channel):
+    def set_speed(self, speed_ini, speed_fin, accel, channel):
         """Sets the speed of the stage.
         Args:
             speed_inital (int): Initial speed of the stage.
@@ -129,10 +128,10 @@ class SHRC203VISADriver:
             channel (int): Channel of the stage.
         """
         # DK - typo: speed_inital -> speed_initial or speed_ini
-        self.speed_inital = speed_inital # DK - follow SBIS26. Write other variables
+        self.speed_ini = speed_ini # DK - follow SBIS26. Write other variables
 
-        if 0 < speed_inital < speed_final and accel > 0: # DK - follow SBIS26.
-            self._instr.write(f"D:{channel},{speed_inital},{speed_final},{accel}")
+        if 0 < speed_ini < speed_fin and accel > 0: # DK - follow SBIS26.
+            self._instr.write(f"D:{channel},{speed_ini},{speed_fin},{accel}")
         else:
             Exception("Invalid parameters")
 
@@ -153,7 +152,7 @@ class SHRC203VISADriver:
                 f"M:{channel}" + f"-P%{abs(position)}"
             )  # check this command. Speed should be incorporated
         self._instr.write("G:")
-        self.wait_for_stop()
+        self.wait_for_ready()
         return self.read_state(channel)
 
     def home(self, channel):
@@ -162,7 +161,7 @@ class SHRC203VISADriver:
         return self.read_state(channel)
 
     # DK - Use the same method name as in the SBIS26: wait_for_ready
-    def wait_for_stop(self, channel):
+    def wait_for_ready(self, channel):
         """Wait for the stage to stop moving."""
         time0 = time.time()
         while self.read_state(channel) != "R":
@@ -176,7 +175,7 @@ class SHRC203VISADriver:
     def stop(self, channel):
         """Stop the stage"""
         self._instr.write(f"L:{channel}")
-        self.wait_for_stop(channel)
+        self.wait_for_ready(channel)
         return self.read_state(channel)
 
     def read_state(self, channel):
@@ -186,7 +185,6 @@ class SHRC203VISADriver:
         state = self._instr.query(f"!:{channel}S")
         return state
 
-    # DK - close resource manager
     def close(self):
         """Close the connection with the controller."""
         pass
