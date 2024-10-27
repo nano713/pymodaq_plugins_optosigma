@@ -113,11 +113,31 @@ class SHRC203VISADriver:
         # return self.read_state(channel) DK - Delete. This duplicates the information with wait_for_stop(). Delete the rest of the duplicated information
 
     def get_position(self, channel):
-        # DK - write the command to get the position of the stage. Use query() method.
-        # See the example in the SBIS26
-        pass
-
+        while True:
+            position = self._instr.query(f"Q:S{channel}")
+            logger.info(f"Channel {channel} position: {position}")
+            try:
+                position = float(position.split(",")[2])
+                return position 
+            except ValueError:
+                time.sleep(0.2)
+                continue
     
+    def get_position(self, channel):
+        """Gets the position of the stage.
+        Args:
+            channel (int): Channel of the stage.
+        Returns (float): Position of the stage.
+        """
+        while True:
+            self._stage.query(f"Q:D,{channel}")
+            position_str = self._stage.query(f"Q:D,{channel}")
+            try:
+                position = float(position_str.split(",")[2])
+                return position
+            except ValueError:
+                time.sleep(0.2)
+                continue
     def set_speed(self, speed_ini, speed_fin, accel, channel):
         """Sets the speed of the stage.
         Args:
