@@ -6,6 +6,46 @@ from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
 
+# DK - reuse this class that we wrote in pymeasure instruments. See an example: https://github.com/nano713/pymeasure/blob/dev/sbis26/pymeasure/instruments/newport/esp300.py
+class AxisError(Exception):
+    """
+    Raised when a particular axis causes an error for OptoSigma SHRC-203.
+
+    """
+
+    MESSAGES = {
+        '1': 'Normal (S1 to S10 and emergency stop has not occurred)',
+        '3': 'Command error',
+        '7': 'Scale error (S1)',
+        'F': 'Disconnection error (S2)',
+        '1F': 'Overflow error (S4)',
+        '3F': 'Emergency stop',
+        '7F': 'Hunting error (S3)',
+        'FF': 'Limit error (S5)',
+        '1FF': 'Counter overflow (S6)',
+        '3FF': 'Auto config error',
+        '7FF': '24V IO overload warning (W1)',
+        'FFF': '24V terminal block overload warning (W2)',
+        '1FFF': 'System error (S7)',
+        '3FFF': 'Motor driver overheat warning (W3)',
+        '7FFF': 'Motor driver overheat error (S10)',
+        'FFFF': 'Out of in-position range   (after positioning is completed) (READY)',
+        '1FFFF': 'Out of in-position range (During positioning operation) (BUSY)',
+        '3FFFF': 'Logical origin return is in progress',
+        '7FFFF': 'Mechanical origin return is in progress',
+        'FFFFF': 'CW limit detection',
+        '1FFFFF': 'CCW limit detection',
+        '3FFFFF': 'CW software limit stop',
+        '7FFFFF': 'CCW software limit stop',
+        'FFFFFF': 'NEAR sensor detection',
+        '1FFFFFF': 'ORG sensor detection',
+    }
+
+    def __init__(self, code):
+        self.message = self.MESSAGES[code]
+
+    def __str__(self):
+        return f"OptoSigma SHRC-203 Error: {self.message}"
 
 class SHRC203VISADriver:
     """
@@ -19,6 +59,14 @@ class SHRC203VISADriver:
         self._instr = None
         self.rsrc_name = rsrc_name
 
+    def check_error(self, channel):
+        """
+        Check if there is an error in the specified channel.
+        """
+        error = self._instr.query(f"?:{channel}E") # DK - correct the command
+        if error != "1":
+            return AxisError(error)
+
     def open_connection(self):  # probably don't need this
         """
         Open the connection with the controller.
@@ -31,18 +79,20 @@ class SHRC203VISADriver:
             self._instr.write_termination = "\r\n"
             self._instr.read_termination = "\r\n"
             # self._instr.write                need to check this command to connect
-            logger.info(f"Connection to {self.instr} successful")
+            logger.info(f"Connection to {self._instr} successful")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
 
-    def set_loop(self, channel, loop):
+    def set_loop(self, channel, loop): # DK - the order of the attributes should be consistent across the methods.
+        # Either channel-> others or others -> channel. e.g., the order in this method is inconsistent with move method
         """
         Open the loop of the specified channel.
         1: Open loop
         0: Close loop
         """
 
-        self._instr.write(f":F{channel}:" + f"{loop}")
+        self._instr.write(f":F{channel}:" + f"{loop}") # DK should be f":F{channel}:{loop}" to make it concise. Apply
+        # to the rest of lines
         logger.info(f"Channel {channel} loop set to {loop}")
 
     def get_loop(self, channel):
@@ -62,8 +112,14 @@ class SHRC203VISADriver:
             self._instr.write(f"A:{channel}:" + f"-P%{abs(position)}")
         self._instr.write("G:")
         self.wait_for_stop()
-        return self.read_state(channel)
+        # return self.read_state(channel) DK - Delete. This duplicates the information with wait_for_stop(). Delete the rest of the duplicated information
 
+    def get_position(self, channel):
+        # DK - write the command to get the position of the stage. Use query() method.
+        # See the example in the SBIS26
+        pass
+
+    # DK - use the same method name as in the SBIS26: speed_ini or rename the variables in sbis26.
     def set_speed(self, speed_inital, speed_final, accel, channel):
         """Sets the speed of the stage.
         Args:
@@ -72,12 +128,21 @@ class SHRC203VISADriver:
             accel (int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
-        if 0 < speed_inital < speed_final and accel > 0:
+        # DK - typo: speed_inital -> speed_initial or speed_ini
+        self.speed_inital = speed_inital # DK - follow SBIS26. Write other variables
+
+        if 0 < speed_inital < speed_final and accel > 0: # DK - follow SBIS26.
             self._instr.write(f"D:{channel},{speed_inital},{speed_final},{accel}")
         else:
             Exception("Invalid parameters")
 
-    def move_relative(self, position, speed, channel):
+    # DK - Implement the following methods
+    def get_speed(self, channel):
+        """Get the speed of the stage."""
+        # DK - write the command to get the speed of the stage
+        pass
+
+    def move_relative(self, position, channel):
         """Move the stage to a relative position."""
         if position >= 0:
             self._instr.write(
@@ -96,11 +161,12 @@ class SHRC203VISADriver:
         self._instr.write(f"H:{channel}")
         return self.read_state(channel)
 
+    # DK - Use the same method name as in the SBIS26: wait_for_ready
     def wait_for_stop(self, channel):
         """Wait for the stage to stop moving."""
         time0 = time.time()
         while self.read_state(channel) != "R":
-            print(self.status())
+            print(self.status()) # DK - make sure you delete print() at the end
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.warning("Timeout")
@@ -119,3 +185,8 @@ class SHRC203VISADriver:
         R: Ready"""
         state = self._instr.query(f"!:{channel}S")
         return state
+
+    # DK - close resource manager
+    def close(self):
+        """Close the connection with the controller."""
+        pass
