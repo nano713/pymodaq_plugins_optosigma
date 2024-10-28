@@ -33,9 +33,9 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
          hardware library.
 
     # TODO add your particular attributes here if any
-
     """
-    # DK - use the multiaxis feature with dictionary format {"X":1, ...}
+    # DK - add defaults_unit = "um" and daq_move will take this.
+
     is_multiaxes = True  # TODO for your plugin set to True if this plugin is controlled for a multiaxis controller
     _axis_names: Union[List[str], Dict[str, int]] = {"X":1, "Y":2, "Z":3} 
     # DK - It may be good to use 'm' unit to apply _controller_units feature. I am afraid that mm becomes kilo micrometers k um
@@ -50,7 +50,12 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     # as  DataActuatorType.float  (or entirely remove the line)
 
 
-    # AD - Doesn't work with the current implementation. You need to have setter and getter methods to apply this feature for the speed parameter. 
+    # AD - Doesn't work with the current implementation. You need to have setter and getter methods to apply this feature for the speed parameter.
+    # DK - regarding the setter and getter, SHRC203 has different command from SBIS26. Now SHRC can set individual speed_ini, speed_fin, and accel_t.
+
+    # DK - title is the pre-built key and we cannot rename. Rename title1 into title, title2 into title, ...
+    # DK - for the first one should be rsrc_name with a type of 'str'. Only thorlabs takes serial number via dll, but not in optosigma SCPI.
+
     params = [ {'title': 'Serial Number:', 'name': 'serial_number', 'type': 'list', 'limits': rsrc_name, 'value': rsrc_name[0]},
               {'title1': 'Loop:', 'name': 'loop', 'type': 'int', 'value': 0},
               {'title2': 'Speed:', 'name': 'speed_ini', 'type': 'float', 'value': 0}, 
@@ -141,6 +146,8 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         """
         self.ini_stage_init(slave_controller=controller)  # will be useful when controller is slave
 
+        # DK - SHRC203() should be SHRC203(rsrc_name)
+        # DK - add self.stage.open_connection() to get initialized
         if self.is_master:  # is needed when controller is master
             self.stage = SHRC203()  # arguments for instantiation!)
             # todo: enter here whatever is needed for your controller initialization and eventual
