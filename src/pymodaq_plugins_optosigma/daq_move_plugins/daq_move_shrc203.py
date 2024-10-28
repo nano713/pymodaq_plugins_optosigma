@@ -11,6 +11,8 @@ logger = set_logger(get_module_name(__file__))
 # DK - follow the naming convention. this file name should be daq_move_SHRC203. See
 # https://pymodaq.cnrs.fr/en/4.4.x/developer_folder/instrument_plugins.html#naming-convention.
 
+rsrc_name = ''
+axis_value = 1
 class DAQ_Move_SHRC203(DAQ_Move_base):
     """ Instrument plugin class for an actuator.
 
@@ -46,9 +48,9 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     # Leave this as it is.
     data_actuator_type = DataActuatorType.DataActuator  # wether you use the new data style for actuator otherwise set this
     # as  DataActuatorType.float  (or entirely remove the line)
-params = [
-    
-    # DK - create 'rsrc_name', 'speed_ini', 'speed...', 'loop' parameters where the speed parameter has children (= list)
+
+
+    # AD - Doesn't work with the current implementation. You need to have setter and getter methods to apply this feature for the speed parameter. 
     params = [ {'title': 'Serial Number:', 'name': 'serial_number', 'type': 'list', 'limits': rsrc_name, 'value': rsrc_name[0]},
               {'title1': 'Loop:', 'name': 'loop', 'type': 'int', 'value': 0},
               {'title2': 'Speed:', 'name': 'speed_ini', 'type': 'float', 'value': 0}, 
