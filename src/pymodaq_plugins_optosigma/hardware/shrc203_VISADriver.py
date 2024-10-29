@@ -83,6 +83,7 @@ class SHRC203VISADriver:
         error = error.split(",")[0]
         while True:
             if error[0] == "U":
+                logger.info("this is the error code: " + error + " No error")
                 break
             else:
                 return AxisError(error)
