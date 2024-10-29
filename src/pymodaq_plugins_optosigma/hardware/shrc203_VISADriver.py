@@ -1,7 +1,7 @@
 import numpy as np
 import time
-import pyvisa as visa
-from pymodaq_plugins_optosigma import config
+import pyvisa
+from pymodaq_plugins_optosigma import config # DK - delete
 from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
@@ -59,13 +59,28 @@ class SHRC203VISADriver:
         """
         self._instr = None
         self.rsrc_name = rsrc_name
-        
+        self.unit = None # DK - initialize unit
 
+    # DK - add self.unit to other method like f"{self.unit}"
+    def set_unit(self, unit: str):
+        """
+        Set the unit of the controller.
+        "N" nanometer designation
+        "U" micrometer designation
+        "M" mm designation
+        "D" degree designation
+        "P" Designation without unit (pulse
+        """
+        self.unit = unit
+
+    # DK Somehow this instrument needs to run query two times for all commands. apply this to all query commands
+    # DK or I would give up query and just set self.current_position, self.loop, etc as a global variables.
     def check_error(self, channel):
         """
         Check if there is an error in the specified channel.
         """
-        error = self._instr.ask(f"SRQ:{channel}S")
+        self._instr.query(f"SRQ:{channel}S")
+        error = self._instr.query(f"SRQ:{channel}S") # DK - ask -> query. open_resource object has not ask method.
         error = error.split(",")[0]
         if error != "1":
             return AxisError(error)
@@ -76,12 +91,13 @@ class SHRC203VISADriver:
         Open the connection with the controller.
         """
         try:
-            self._instr = visa.ResourceManager().open_resource(self.rsrc_name)
-            self._instr.baud_rate = 9600
-            self._instr.data_bits = 8
-            self._instr.parity = visa.constants.Parity.none
-            self._instr.write_termination = "\r\n"
-            self._instr.read_termination = "\r\n"
+            rm = pyvisa.ResourceManager()
+            self._instr = rm.open_resource(self.rsrc_name)
+            # self._instr.baud_rate = 9600 # DK - check with the manual
+            # self._instr.data_bits = 8 # DK - check with the manual
+            # self._instr.parity = pyvisa.constants.Parity.none # DK - check with the manual
+            self._instr.write_termination = "\r\n" # DK - check with the manual
+            self._instr.read_termination = "\r\n" # DK - check with the manual
             logger.info(f"Connection to {self._instr} successful")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
@@ -94,27 +110,35 @@ class SHRC203VISADriver:
         0: Close loop
         """
 
-        self._instr.write(f":F{channel}:{loop}") 
+        self._instr.write(f":F{channel}:{loop}") # DK FIX - no error but _instr.query(f"?:F{channel}") returns 1
         logger.info(f"Channel {channel} loop set to {loop}")
 
     def get_loop(self, channel):
         """
         Get the loop status of the specified channel."""
+        self._instr.query(f"?:F{channel}")
         loop = self._instr.query(f"?:F{channel}")
         logger.info(f"Channel {channel} loop status: {loop}")
         return loop
 
+    # DK need fix? - _instr.query(f"Q:S{channel}") returns '0' even though position = -1000
+    # DK move next to jest above move_relative to help debug in ipython
     def move(self, position, channel): 
         """
         Move the specified channel to the position.
         """
+        # DK - replace P with {self.unit} -> self._instr.write(f"A:{channel}+U{position}")
+        # DK - delete colon after {channel}. (DK deleted it)
         if position >= 0:
-            self._instr.write(f"A:{channel}:" + f"+P{position}")
+            self._instr.write(f"A:{channel}+P{position}")
         else:
-            self._instr.write(f"A:{channel}:" + f"-P%{abs(position)}")
+            self._instr.write(f"A:{channel}-P{abs(position)}")
         self._instr.write("G:")
         self.wait_for_ready()
 
+    # DK - Correct command. In the manual Q:Su, where u is a unit of N, U, ...
+    # DK - In[13]: _instr.query(f"Q:S{unit}")
+    # DK -  Out[13]: 'U0.00,U0.00,U0.00,2,2,1000002,R,R,R' <- example output. use split(",")
     def get_position(self, channel):
         while True:
             position = self._instr.query(f"Q:S{channel}")
@@ -125,7 +149,8 @@ class SHRC203VISADriver:
             except ValueError:
                 time.sleep(0.2)
                 continue
-    
+
+    # DK - split into 3 methods with DS, DF, DR commands by specifying axis, unit, speed
     def set_speed(self, speed_ini, speed_fin, accel, channel):
         """Sets the speed of the stage.
         Args:
@@ -143,10 +168,11 @@ class SHRC203VISADriver:
         else:
             Exception("Invalid parameters")
 
-    # DK - Implement the following methods
     def get_speed(self, channel):
         """Get the speed of the stage."""
-        speed = self._instr.query(f"?:D{channel}")
+        self._instr.query(f"?:D{channel}")
+        speed = self._instr.query(f"?:D{channel}") # DK output example 'S2000F20000R100' where we should use
+        # .split("S"),.split("F"),.split("R"). First test with the output example on you ipython and then implement the method
         logger.info(f"Channel {channel} speed: {speed}")
         return speed
 
