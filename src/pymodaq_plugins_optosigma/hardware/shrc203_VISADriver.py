@@ -61,7 +61,6 @@ class SHRC203VISADriver:
         self.rsrc_name = rsrc_name
         self.unit = None # DK - initialize unit
 
-    # DK - add self.unit to other method like f"{self.unit}"
     def set_unit(self, unit: str):
         """
         Set the unit of the controller.
@@ -82,8 +81,11 @@ class SHRC203VISADriver:
         self._instr.query(f"SRQ:{channel}S")
         error = self._instr.query(f"SRQ:{channel}S") # DK - ask -> query. open_resource object has not ask method.
         error = error.split(",")[0]
-        if error != "1":
-            return AxisError(error)
+        while True:
+            if error[0] == "U":
+                break
+            else:
+                return AxisError(error)
 
     def open_connection(self):  # probably don't need this
                                 #AD: SBIS26VISADriver has a connect method. A similar format is used to initialize the connection. 
@@ -93,11 +95,11 @@ class SHRC203VISADriver:
         try:
             rm = pyvisa.ResourceManager()
             self._instr = rm.open_resource(self.rsrc_name)
-            # self._instr.baud_rate = 9600 # DK - check with the manual
-            # self._instr.data_bits = 8 # DK - check with the manual
-            # self._instr.parity = pyvisa.constants.Parity.none # DK - check with the manual
-            self._instr.write_termination = "\r\n" # DK - check with the manual
-            self._instr.read_termination = "\r\n" # DK - check with the manual
+            self._instr.baud_rate = 9600
+            self._instr.data_bits = 8 
+            self._instr.parity = pyvisa.constants.Parity.none 
+            self._instr.write_termination = "\r\n" 
+            self._instr.read_termination = "\r\n" 
             logger.info(f"Connection to {self._instr} successful")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
@@ -130,9 +132,9 @@ class SHRC203VISADriver:
         # DK - replace P with {self.unit} -> self._instr.write(f"A:{channel}+U{position}")
         # DK - delete colon after {channel}. (DK deleted it)
         if position >= 0:
-            self._instr.write(f"A:{channel}+P{position}")
+            self._instr.write(f"A:{channel}{self.unit}{position}")
         else:
-            self._instr.write(f"A:{channel}-P{abs(position)}")
+            self._instr.write(f"A:{channel}{self.unit}{abs(position)}")
         self._instr.write("G:")
         self.wait_for_ready()
 
@@ -142,7 +144,7 @@ class SHRC203VISADriver:
     def get_position(self, channel):
         while True:
             position = self._instr.query(f"Q:S{channel}")
-            logger.info(f"Channel {channel} position: {position}")
+            logger.info(f"Channel {channel} position: {self.unit}{position}")
             try:
                 position = float(position.split(",")[2])
                 return position 
@@ -173,18 +175,18 @@ class SHRC203VISADriver:
         self._instr.query(f"?:D{channel}")
         speed = self._instr.query(f"?:D{channel}") # DK output example 'S2000F20000R100' where we should use
         # .split("S"),.split("F"),.split("R"). First test with the output example on you ipython and then implement the method
-        logger.info(f"Channel {channel} speed: {speed}")
+        logger.info(f"Channel {channel} speed: {self.unit}{speed}")
         return speed
 
     def move_relative(self, position, channel):
         """Move the stage to a relative position."""
         if position >= 0:
             self._instr.write(
-                f"M:{channel}" + f"+P{position}"
+                f"M:{channel}" + f"{self.unit}{position}"
             )  
         else:
             self._instr.write(
-                f"M:{channel}" + f"-P%{abs(position)}"
+                f"M:{channel}" + f"{self.unit}{abs(position)}"
             )  
         self._instr.write("G:")
         self.wait_for_ready()
@@ -204,6 +206,7 @@ class SHRC203VISADriver:
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.warning("Timeout")
+                self.check_error(channel)
                 break
             time.sleep(0.2)
 
