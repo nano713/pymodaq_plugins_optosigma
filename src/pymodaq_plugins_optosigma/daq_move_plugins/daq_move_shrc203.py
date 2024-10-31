@@ -69,7 +69,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
 
     def ini_attributes(self):
         self.stage: SHRC203 = None
-        self.axis_value = 1  
+        self.axis_value = None
 
     # DK data = self.controller.get_position(self.axis_value) See example in https://github.com/nano713/pymodaq_plugins_thorlabs/blob/dev/kpz_plugin/src/pymodaq_plugins_thorlabs/daq_move_plugins/daq_move_BrushlessDCMotor.py
     def get_actuator_value(self):
@@ -80,7 +80,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         float: The position obtained after scaling conversion.
         """
         pos = DataActuator(
-            data=self.stage.get_position(self.axis_value))  # when writing your own plugin replace this line
+            data=self.stage.get_position(self.axis_name))  # when writing your own plugin replace this line
         pos = self.get_position_with_scaling(pos)
         return pos
 
@@ -117,7 +117,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         """
         default_units = 'um' # default units for the stage
         if param.name() == 'speed_ini' or param.name() == 'speed_fin' or param.name() == 'accel_t':
-            self.speed_ini = self.stage.set_speed(self.speed_ini, self.speed_fin, self.accel_t, self.axis_value)
+           self.stage.set_speed(self.speed_ini, self.speed_fin, self.accel_t, self.axis_value)
             #TODO How do we do this is the speed is being called from a dictionary before hand.....
 
             # do this only if you can and if the units are not known beforehand, for instance
@@ -126,6 +126,8 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
 
         elif param.name() == "loop":
             self.stage.set_loop()
+        elif param.name() == "speed_ini" or param.name() == "speed_fin" or param.name() == "accel_t":
+            self.stage.set_speed(self.speed_ini, self.speed_fin, self.accel_t, self.axis_value)
         else:
             pass
 
