@@ -77,14 +77,12 @@ class SHRC203VISADriver:
         """
         self.unit = unit
 
-    # DK Somehow this instrument needs to run query two times for all commands. apply this to all query commands
-    # DK or I would give up query and just set self.current_position, self.loop, etc as a global variables.
     def check_error(self, channel):
         """
         Check if there is an error in the specified channel.
         """
         self._instr.query(f"SRQ:{channel}S")
-        error = self._instr.query(f"SRQ:{channel}S") # DK - ask -> query. open_resource object has not ask method.
+        error = self._instr.query(f"SRQ:{channel}S")
         error = error.split(",")[0]
         while True:
             if error[0] == "U":
@@ -110,8 +108,7 @@ class SHRC203VISADriver:
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
 
-    def set_loop(self, loop : dict, channel : int): # DK - the order of the attributes should be consistent across the methods.
-        # Either channel-> others or others -> channel. e.g., the order in this method is inconsistent with move method
+    def set_loop(self, loop : dict, channel : int):
         """
         Open the loop of the specified channel.
         1: Open loop
@@ -128,8 +125,6 @@ class SHRC203VISADriver:
         """
         Move the specified channel to the position.
         """
-        # DK - replace P with {self.unit} -> self._instr.write(f"A:{channel}+U{position}")
-        # DK - delete colon after {channel}. (DK deleted it)
         if position >= 0:
             self._instr.write(f"A:{channel}{self.unit}{position}")
         else:
@@ -142,7 +137,7 @@ class SHRC203VISADriver:
     def get_position(self, channel):
         return self.position[channel]
 
-    # DK - split into 3 methods with DS, DF, DR commands by specifying axis, unit, speed
+    
     def set_speed(self, speed_ini, speed_fin, accel, channel):
         """Sets the speed of the stage.
         Args:
@@ -178,13 +173,11 @@ class SHRC203VISADriver:
             )  
         self._instr.write("G:")
         self.wait_for_ready()
-        # return self.read_state(channel)
 
     def home(self, channel):
         """Move the stage to the home position."""
         self._instr.write(f"H:{channel}")
         self.wait_for_ready(self, f"{channel}")
-        # return self.read_state(channel)
 
     
     def wait_for_ready(self, channel):
@@ -203,7 +196,6 @@ class SHRC203VISADriver:
         """Stop the stage"""
         self._instr.write(f"L:{channel}")
         self.wait_for_ready(channel)
-        # return self.read_state(channel)
 
     def read_state(self, channel):
         """Read the state if the stage is moving or not.
