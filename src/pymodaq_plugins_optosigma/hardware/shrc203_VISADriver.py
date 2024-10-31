@@ -178,12 +178,13 @@ class SHRC203VISADriver:
             )  
         self._instr.write("G:")
         self.wait_for_ready()
-        return self.read_state(channel)
+        # return self.read_state(channel)
 
     def home(self, channel):
         """Move the stage to the home position."""
         self._instr.write(f"H:{channel}")
-        return self.read_state(channel)
+        self.wait_for_ready(self, f"{channel}")
+        # return self.read_state(channel)
 
     
     def wait_for_ready(self, channel):
@@ -202,7 +203,7 @@ class SHRC203VISADriver:
         """Stop the stage"""
         self._instr.write(f"L:{channel}")
         self.wait_for_ready(channel)
-        return self.read_state(channel)
+        # return self.read_state(channel)
 
     def read_state(self, channel):
         """Read the state if the stage is moving or not.
