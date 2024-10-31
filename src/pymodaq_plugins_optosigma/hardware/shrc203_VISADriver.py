@@ -1,7 +1,6 @@
 import numpy as np
 import time
 import pyvisa
-from pymodaq_plugins_optosigma import config # DK - delete
 from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
@@ -60,6 +59,12 @@ class SHRC203VISADriver:
         self._instr = None
         self.rsrc_name = rsrc_name
         self.unit = None # DK - initialize unit
+        self.channel = {"X": 1, "Y": 2, "Z": 3}
+        self.loop = {"X": None, "Y": None, "Z": None}
+        self.position = {"X":None, "Y": None,"Z" :None} 
+        self.speed_ini = {"X": None, "Y": None, "Z": None}
+        self.speed_fin = {"X": None, "Y": None, "Z": None}
+        self.accel = {"X": None, "Y": None, "Z": None}
 
     def set_unit(self, unit: str):
         """
@@ -88,8 +93,8 @@ class SHRC203VISADriver:
             else:
                 return AxisError(error)
 
-    def open_connection(self):  # probably don't need this
-                                #AD: SBIS26VISADriver has a connect method. A similar format is used to initialize the connection. 
+    def open_connection(self): 
+                                
         """
         Open the connection with the controller.
         """
@@ -105,27 +110,20 @@ class SHRC203VISADriver:
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
 
-    def set_loop(self, loop, channel): # DK - the order of the attributes should be consistent across the methods.
+    def set_loop(self, loop : dict, channel : int): # DK - the order of the attributes should be consistent across the methods.
         # Either channel-> others or others -> channel. e.g., the order in this method is inconsistent with move method
         """
         Open the loop of the specified channel.
         1: Open loop
         0: Close loop
         """
-
-        self._instr.write(f":F{channel}:{loop}") # DK FIX - no error but _instr.query(f"?:F{channel}") returns 1
-        logger.info(f"Channel {channel} loop set to {loop}")
+        self.loop = loop[channel] 
 
     def get_loop(self, channel):
         """
         Get the loop status of the specified channel."""
-        self._instr.query(f"?:F{channel}")
-        loop = self._instr.query(f"?:F{channel}")
-        logger.info(f"Channel {channel} loop status: {loop}")
-        return loop
+        return self.loop[channel] 
 
-    # DK need fix? - _instr.query(f"Q:S{channel}") returns '0' even though position = -1000
-    # DK move next to jest above move_relative to help debug in ipython
     def move(self, position, channel): 
         """
         Move the specified channel to the position.
@@ -138,20 +136,11 @@ class SHRC203VISADriver:
             self._instr.write(f"A:{channel}{self.unit}{abs(position)}")
         self._instr.write("G:")
         self.wait_for_ready()
+        self.position[channel] = position
 
-    # DK - Correct command. In the manual Q:Su, where u is a unit of N, U, ...
-    # DK - In[13]: _instr.query(f"Q:S{unit}")
-    # DK -  Out[13]: 'U0.00,U0.00,U0.00,2,2,1000002,R,R,R' <- example output. use split(",")
+
     def get_position(self, channel):
-        while True:
-            position = self._instr.query(f"Q:S{channel}")
-            logger.info(f"Channel {channel} position: {self.unit}{position}")
-            try:
-                position = float(position.split(",")[2])
-                return position 
-            except ValueError:
-                time.sleep(0.2)
-                continue
+        return self.position[channel]
 
     # DK - split into 3 methods with DS, DF, DR commands by specifying axis, unit, speed
     def set_speed(self, speed_ini, speed_fin, accel, channel):
@@ -162,11 +151,8 @@ class SHRC203VISADriver:
             accel (int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
-        
-         # DK - follow SBIS26. Write other variables. 
-         # AD: Placeholder in case we need to implement the variables to get the speed
 
-        if 0 < speed_ini < speed_fin and accel > 0: # DK - follow SBIS26.
+        if 0 < speed_ini < speed_fin and accel > 0:
             self._instr.write(f"D:{channel},{speed_ini},{speed_fin},{accel}")
         else:
             Exception("Invalid parameters")
@@ -175,10 +161,10 @@ class SHRC203VISADriver:
         """Get the speed of the stage."""
         self._instr.query(f"?:D{channel}")
         speed = self._instr.query(f"?:D{channel}") # DK output example 'S2000F20000R100' where we should use
-        speed = speed.split("S")[0].split("F")[1].split("R")[2]  # DK
-        # .split("S"),.split("F"),.split("R"). First test with the output example on you ipython and then implement the method
-        logger.info(f"Channel {channel} speed: {self.unit}{speed[0]}")
-        return speed
+        self.speed_ini = speed.spliy("S")[1].split("F")[1].split("R")[0] #only split the speed part
+        self.speed_fin = speed.split("F")[1].split("R")[0]
+        self.accel = speed.split("R")[1]
+        return self.speed_ini[channel], self.speed_fin[channel], self.accel_t[channel]
 
     def move_relative(self, position, channel):
         """Move the stage to a relative position."""
