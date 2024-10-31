@@ -42,7 +42,7 @@ class SBIS26VISADriver:
             self._stage.query(f"SRQ:D,{channel}")
             error_str = self._stage.query(f"SRQ:D,{channel}")
             key = error_str.split(",")[3]
-            if key in status:
+            if error_str in status.keys():
                 channel_val = int(error_str.split(",")[1])
                 if channel_val == channel:
                     return error_str[key]
@@ -70,10 +70,12 @@ class SBIS26VISADriver:
         while True:
             self._stage.query(f"Q:D,{channel}")
             position_str = self._stage.query(f"Q:D,{channel}")
-            try:
+            status = {'D', channel}
+            if position_str[0] == status[0] and channel == status[1]:
                 position = float(position_str.split(",")[2])
-                return position
-            except ValueError:
+                if position_str.split(",")[1] == str(channel):
+                    return position
+            else:
                 time.sleep(0.2)
                 continue
 
