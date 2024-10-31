@@ -175,8 +175,9 @@ class SHRC203VISADriver:
         """Get the speed of the stage."""
         self._instr.query(f"?:D{channel}")
         speed = self._instr.query(f"?:D{channel}") # DK output example 'S2000F20000R100' where we should use
+        speed = speed.split("S")[0].split("F")[1].split("R")[2]  # DK
         # .split("S"),.split("F"),.split("R"). First test with the output example on you ipython and then implement the method
-        logger.info(f"Channel {channel} speed: {self.unit}{speed}")
+        logger.info(f"Channel {channel} speed: {self.unit}{speed[0]}")
         return speed
 
     def move_relative(self, position, channel):
