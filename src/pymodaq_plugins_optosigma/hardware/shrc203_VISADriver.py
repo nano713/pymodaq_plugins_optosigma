@@ -61,7 +61,7 @@ class SHRC203VISADriver:
         self.unit = None # DK - initialize unit
         self.channel = {"X": 1, "Y": 2, "Z": 3}
         self.loop = {"X": None, "Y": None, "Z": None}
-        self.position = {"X":None, "Y": None,"Z" :None} 
+        self.position = {"X":None, "Y": None,"Z" :None}
         self.speed_ini = {"X": None, "Y": None, "Z": None}
         self.speed_fin = {"X": None, "Y": None, "Z": None}
         self.accel = {"X": None, "Y": None, "Z": None}
@@ -126,7 +126,7 @@ class SHRC203VISADriver:
         Move the specified channel to the position.
         """
         if position >= 0:
-            self._instr.write(f"A:{channel}{self.unit}{position}")
+            self._instr.write(f"A:{channel}{self.unit}{position}") # DK - need "+" somewhere in the command? Check with the manual
         else:
             self._instr.write(f"A:{channel}{self.unit}{abs(position)}")
         self._instr.write("G:")
@@ -138,7 +138,7 @@ class SHRC203VISADriver:
         return self.position[channel]
 
     
-    def set_speed(self, speed_ini, speed_fin, accel, channel):
+    def set_speed(self, speed_ini, speed_fin, accel, channel): # accel should be accel_t to make it consistent with the rest of the code
         """Sets the speed of the stage.
         Args:
             speed_inital (int): Initial speed of the stage.
@@ -201,7 +201,7 @@ class SHRC203VISADriver:
         """Read the state if the stage is moving or not.
         B: Busy
         R: Ready"""
-        state = self._instr.query(f"!:{channel}S")
+        state = self._instr.query(f"!:{channel}S") # DK - add while loop if possible.
         return state
 
     def close(self):
