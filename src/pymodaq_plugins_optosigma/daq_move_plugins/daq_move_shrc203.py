@@ -73,7 +73,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             "title": "Unit:",
             "name": "unit",
             "type": "list",
-            "values": ["um", "mm", "nm", "deg", "pulse"],
+            "values": ["um", "mm", "nm", "deg", "pulse"], # DK - replace 'values' with 'limits'
             "value": "um",
         },
         {"title": "Loop:", "name": "loop", "type": "int", "value": 0},# DK - 'value' should be  "" (empty)
@@ -131,6 +131,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         elif param.name() == "unit":
             unit_dict = {"um": "U", "mm": "M", "nm": "N", "deg": "D", "pulse": "P"}
             self.stage.set_unit(unit_dict[self.settings["unit"]])
+            _controller_units = self.settings["unit"] # DK -add this line to update the unit in GUI
         else:
             pass
 
