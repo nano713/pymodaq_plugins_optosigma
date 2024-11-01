@@ -13,7 +13,7 @@ class SBIS26VISADriver:
 
         self._stage = None
         self.rsrc_name = rsrc_name
-        self.unit = None
+        self.unit = None # DK - delete. SBIS26 only has pulse unit
         self.speed_ini = {"X": None, "Y": None, "Z": None}
         self.speed_fin = {"X": None, "Y": None, "Z": None}
         self.accel_t = {"X": None, "Y": None, "Z": None}
@@ -58,7 +58,7 @@ class SBIS26VISADriver:
             channel (int): Channel of the stage.
         Returns (str): Status of the stage.
         """
-        self._stage.query(f"SRQ:D,{channel}")
+        self._stage.query(f"SRQ:D,{channel}") # DK - add while loop if possible
         status_str = self._stage.query(f"SRQ:D,{channel}")
         key = status_str.split(",")[-1]
         return status_str[key]
@@ -134,7 +134,7 @@ class SBIS26VISADriver:
 
         time0 = time.time()
         while self.status(channel) != "R":
-            print(self.status())
+            print(self.status()) # DK - logger.debut(self.status())
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.warning("Timeout")
