@@ -7,7 +7,7 @@ from pymodaq_plugins_optosigma.hardware.Sbis26_VISADriver import SBIS26
 logger = logging.getLogger(__name__)
 
 
-
+# DK - Delete this class because we use the separate hardware code
 class PythonWrapperOfYourInstrument:
     #  TODO Replace this fake class with the import of the real python wrapper of your instrument
     pass
@@ -19,7 +19,7 @@ class PythonWrapperOfYourInstrument:
 # (3) this file should then be put into the right folder, namely IN THE FOLDER OF THE PLUGIN YOU ARE DEVELOPING:
 #     pymodaq_plugins_my_plugin/daq_move_plugins
 
-rsrc_name = ""
+rsrc_name = "" # DK - delete this line
 class DAQ_Move_SBIS26(DAQ_Move_base):
     """ Instrument plugin class for an actuator.
     
@@ -45,7 +45,7 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
     
     is_multiaxes = True 
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y": 2, "Z": 3}
-    _controller_units: Union[str, List[str]] = "um"
+    _controller_units: Union[str, List[str]] = "um" # DK - replace with "". SBIS26 only has pulse unit.
     _epsilon: Union[float, List[float]] = (
         0.1  
     )
