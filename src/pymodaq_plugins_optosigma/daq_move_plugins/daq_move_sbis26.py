@@ -1,8 +1,11 @@
+import logging
 from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType,\
     DataActuator  # common set of parameters for all actuators
 from pymodaq.utils.daq_utils import ThreadCommand # object used to send info back to the main thread
 from pymodaq.utils.parameter import Parameter
 from pymodaq_plugins_optosigma.hardware.Sbis26_VISADriver import SBIS26
+logger = logging.getLogger(__name__)
+
 
 
 class PythonWrapperOfYourInstrument:
