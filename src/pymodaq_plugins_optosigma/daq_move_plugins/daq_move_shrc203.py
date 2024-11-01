@@ -155,7 +155,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         )  # will be useful when controller is slave
 
         if self.is_master:
-            self.stage = SHRC203(rsrc_name)
+            self.stage = SHRC203(rsrc_name) # DK - rsrc_name should be self.settings["rsrc_name"] to call it from the GUI
             self.stage.open_connection()
         else:
             logger.warning("No controller has been defined. Please define one")
@@ -177,6 +177,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         value = self.set_position_with_scaling(value)
 
         self.stage.move(value.value()) # DK - Add channel attribute (=self.axis_value)
+        # DK - delete emit_status because this will be recorded on the log file but we do not have to record every signle move.
         self.emit_status(
             ThreadCommand("Update_Status", ["SHRC203 has moved to the target position"])
         )
@@ -195,7 +196,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         value = self.set_position_relative_with_scaling(value)
 
         self.stage.move_relative(value.value()) # DK - Add channel attribute (=self.axis_value)
-        self.emit_status(
+        self.emit_status( # DK - delete
             ThreadCommand(
                 "Update_Status", ["SHRC203 has moved to the relative target position"]
             )
@@ -204,14 +205,14 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     def move_home(self):
         """Call the reference method of the controller"""
         self.stage.home() # DK - Add channel attribute (=self.axis_value)
-        self.emit_status(
+        self.emit_status( # DK - delete
             ThreadCommand("Update_Status", ["SHRC203 has moved to the home position"])
         )
 
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
         self.stage.stop() # DK - Add channel attribute (=self.axis_value)
-        self.emit_status(ThreadCommand("Update_Status", ["Instrument stopped"]))
+        self.emit_status(ThreadCommand("Update_Status", ["Instrument stopped"])) # DK this is okay to keep because stop does not often happen.
 
     if __name__ == "__main__":
         main(__file__)
