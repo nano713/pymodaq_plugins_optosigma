@@ -102,6 +102,8 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         """
         if param.name() == "speed_ini" or param.name() == "speed_fin" or param.name() == "accel_t":
            self.controller.set_speed(self.speed_ini, self.speed_fin, self.accel_t, self._axis_names)
+           # AD: self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"], self.settings["accel_t"], self._axis_names)?
+           # or is this old formatting that is no longer used? 
         elif param.name() == "unit":
             unit_dict = {"um": "U", "mm": "M", "nm": "N", "deg": "D", "pulse": "P"}
             self.stage.set_unit(unit_dict[self.settings["unit"]])
