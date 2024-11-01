@@ -1,20 +1,31 @@
 from typing import Union, List, Dict
 
-from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType,\
-    DataActuator  # common set of parameters for all actuators
-from pymodaq.utils.daq_utils import ThreadCommand # object used to send info back to the main thread
+from pymodaq.control_modules.move_utility_classes import (
+    DAQ_Move_base,
+    comon_parameters_fun,
+    main,
+    DataActuatorType,
+    DataActuator,
+)  # common set of parameters for all actuators
+from pymodaq.utils.daq_utils import (
+    ThreadCommand,
+)  # object used to send info back to the main thread
 from pymodaq.utils.parameter import Parameter
-from pymodaq_plugins_optosigma.hardware.shrc203_VISADriver import SHRC203VISADriver as SHRC203
+from pymodaq_plugins_optosigma.hardware.shrc203_VISADriver import (
+    SHRC203VISADriver as SHRC203,
+)
 from pymodaq.utils.logger import set_logger, get_module_name
+
 logger = set_logger(get_module_name(__file__))
 
 # DK - follow the naming convention. this file name should be daq_move_SHRC203. See
 # https://pymodaq.cnrs.fr/en/4.4.x/developer_folder/instrument_plugins.html#naming-convention.
 
-rsrc_name = ''
-axis_value = 1
+rsrc_name = ""
+
+
 class DAQ_Move_SHRC203(DAQ_Move_base):
-    """ Instrument plugin class for an actuator.
+    """Instrument plugin class for an actuator.
 
     This object inherits all functionalities to communicate with PyMoDAQ’s DAQ_Move module through inheritance via
     DAQ_Move_base. It makes a bridge between the DAQ_Move module and the Python wrapper of a particular instrument.
@@ -34,42 +45,48 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
 
     # TODO add your particular attributes here if any
     """
+
     # DK - add defaults_unit = "um" and daq_move will take this.
 
-    is_multiaxes = True  # TODO for your plugin set to True if this plugin is controlled for a multiaxis controller
-    _axis_names: Union[List[str], Dict[str, int]] = {"X":1, "Y":2, "Z":3} 
+    is_multiaxes = True 
+    _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y": 2, "Z": 3}
     # DK - It may be good to use 'm' unit to apply _controller_units feature. I am afraid that mm becomes kilo micrometers k um
-    _controller_units: Union[str, List[str]] = 'um'  # TODO for your plugin: put the correct unit here, it could be
-    # TODO  a single str (the same one is applied to all axes) or a list of str (as much as the number of axes)
-    # DK - Consider that the minimum increment of the stage is 50 nm. Then the epsilon should be ... ?
-    _epsilon: Union[
-        float, List[float]] = 0.1  # TODO replace this by a value that is correct depending on your controller
+    _controller_units: Union[str, List[str]] = "um"
+    _epsilon: Union[float, List[float]] = (
+        0.1  # TODO replace this by a value that is correct depending on your controller
+    )
     # TODO it could be a single float of a list of float (as much as the number of axes)
     # Leave this as it is.
-    data_actuator_type = DataActuatorType.DataActuator  # wether you use the new data style for actuator otherwise set this
-    # as  DataActuatorType.float  (or entirely remove the line)
+    data_actuator_type = (
+        DataActuatorType.DataActuator
+    ) 
 
-
-    # AD - Doesn't work with the current implementation. You need to have setter and getter methods to apply this feature for the speed parameter.
-    # DK - regarding the setter and getter, SHRC203 has different command from SBIS26. Now SHRC can set individual speed_ini, speed_fin, and accel_t.
-
-    # DK - title is the pre-built key and we cannot rename. Rename title1 into title, title2 into title, ...
-    # DK - for the first one should be rsrc_name with a type of 'str'. Only thorlabs takes serial number via dll, but not in optosigma SCPI.
-
-    params = [ {'title': 'Serial Number:', 'name': 'serial_number', 'type': 'list', 'limits': rsrc_name, 'value': rsrc_name[0]},
-              {'title1': 'Loop:', 'name': 'loop', 'type': 'int', 'value': 0},
-              {'title2': 'Speed:', 'name': 'speed_ini', 'type': 'float', 'value': 0}, 
-                {'title3': 'Acceleration:', 'name': 'accel_t', 'type': 'float', 'value': 1},
-                {'title4': 'Speed:', 'name': 'speed_fin', 'type': 'float', 'value': 1.2}, 
-              
-             ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
-
-    # _epsilon is the initial default value for the epsilon parameter allowing pymodaq to know if the controller reached
-    # the target value. It is the developer responsibility to put here a meaningful value
+    params = [
+        {
+            "title": "Serial Number:",
+            "name": "serial_number",
+            "type": "list",
+            "limits": rsrc_name,
+            "value": rsrc_name[0],
+        },
+        {
+            "title": "Unit:",
+            "name": "unit",
+            "type": "list",
+            "values": ["um", "mm", "nm", "deg", "pulse"],
+            "value": "um",
+        },
+        {"title": "Loop:", "name": "loop", "type": "int", "value": 0},
+        {"title": "Speed:", "name": "speed_ini", "type": "float", "value": 0},
+        {"title": "Acceleration:", "name": "accel_t", "type": "float", "value": 1},
+        {"title": "Speed:", "name": "speed_fin", "type": "float", "value": 1.2},
+    ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
         self.stage: SHRC203 = None
-        self.axis_value = None
+        # self.axis_value = None
+        self.speed_ini = None
+        self.default_units = "um"
 
     # DK data = self.controller.get_position(self.axis_value) See example in https://github.com/nano713/pymodaq_plugins_thorlabs/blob/dev/kpz_plugin/src/pymodaq_plugins_thorlabs/daq_move_plugins/daq_move_BrushlessDCMotor.py
     def get_actuator_value(self):
@@ -80,33 +97,16 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         float: The position obtained after scaling conversion.
         """
         pos = DataActuator(
-            data=self.stage.get_position(self.axis_name))  # when writing your own plugin replace this line
+            data=self.stage.get_position(self._axis_names)
+        )  # when writing your own plugin replace this line
         pos = self.get_position_with_scaling(pos)
         return pos
-
-    # DK - delete as instructed
-    # def user_condition_to_reach_target(self) -> bool:
-    #     """ Implement a condition for exiting the polling mechanism and specifying that the
-    #     target value has been reached
-
-    #    Returns
-    #     -------
-    #     bool: if True, PyMoDAQ considers the target value has been reached
-    #     """
-    #     # TODO either delete this method if the usual polling is fine with you, but if need you can
-    #     #  add here some other condition to be fullfilled either a completely new one or
-    #     #  using or/and operations between the epsilon_bool and some other custom booleans
-    #     #  for a usage example see DAQ_Move_brushlessMotor from the Thorlabs plugin
-    #     return True
 
     # run close method
     def close(self):
         """Terminate the communication protocol"""
-        ## TODO for your custom plugin
         return self.stage.close()
-        #  self.controller.your_method_to_terminate_the_communication()  # when writing your own plugin replace this line
 
-    # DK - implement speed, loop, ...
     def commit_settings(self, param: Parameter):
         """Apply the consequences of a change of value in the detector settings
 
@@ -115,19 +115,22 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         param: Parameter
             A given parameter (within detector_settings) whose value has been changed by the user
         """
-        default_units = 'um' # default units for the stage
-        if param.name() == 'speed_ini' or param.name() == 'speed_fin' or param.name() == 'accel_t':
-           self.stage.set_speed(self.speed_ini, self.speed_fin, self.accel_t, self.axis_value)
-            #TODO How do we do this is the speed is being called from a dictionary before hand.....
-
-            # do this only if you can and if the units are not known beforehand, for instance
-            # if the motors connected to the controller are of different type (mm, µm, nm, , etc...)
-            # see BrushlessDCMotor from the thorlabs plugin for an exemple
+        # default_units = 'um' # default units for the stage
+        if (
+            param.name() == "speed_ini"
+            or param.name() == "speed_fin"
+            or param.name() == "accel_t"
+        ):
+            self.stage.set_speed(
+                self.speed_ini, self.speed_fin, self.accel_t, self.axis_value
+            )
 
         elif param.name() == "loop":
             self.stage.set_loop()
-        elif param.name() == "speed_ini" or param.name() == "speed_fin" or param.name() == "accel_t":
-            self.stage.set_speed(self.speed_ini, self.speed_fin, self.accel_t, self.axis_value)
+        elif param.name() == "unit":
+            self.stage.set_unit(
+                self._controller_units
+            )  # AD: How do we do this if it is in dictionary format?
         else:
             pass
 
@@ -146,63 +149,68 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         initialized: bool
             False if initialization failed otherwise True
         """
-        self.ini_stage_init(slave_controller=controller)  # will be useful when controller is slave
+        self.ini_stage_init(
+            slave_controller=controller
+        )  # will be useful when controller is slave
 
-        # DK - SHRC203() should be SHRC203(rsrc_name)
-        # DK - add self.stage.open_connection() to get initialized
-        if self.is_master:  # is needed when controller is master
-            self.stage = SHRC203()  # arguments for instantiation!)
-            # todo: enter here whatever is needed for your controller initialization and eventual
-            #  opening of the communication channel
+        if self.is_master:
+            self.stage = SHRC203(rsrc_name)
+            self.stage.open_connection()
+        else:
+            logger.warning("No controller has been defined. Please define one")
 
-        info = "I'm not sure this works" # DK - replace this line with the actual info
-        initialized = self.stage.open_connection()  # initialized = True
+        info = "SHRC203 is Initialized"  # DK - replace this line with the actual info
+        initialized = True
         return info, initialized
 
     # DK - use move method
     def move_abs(self, value: DataActuator):
-        """ Move the actuator to the absolute target defined by value
+        """Move the actuator to the absolute target defined by value
 
         Parameters
         ----------
         value: (float) value of the absolute target positioning
         """
 
-        value = self.check_bound(value)  # if user checked bounds, the defined bounds are applied here
-        self.target_value = value
-        value = self.set_position_with_scaling(value)  # apply scaling if the user specified one
-       
-        self.stage.move(
-            value.value())  # when writing your own plugin replace this line
-        self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
+        # value = self.check_bound(value)
+        value = self.set_position_with_scaling(value)
+
+        self.stage.move(value.value())
+        self.emit_status(
+            ThreadCommand("Update_Status", ["SHRC203 has moved to the target position"])
+        )
 
     # DK - use move_relative method
     def move_rel(self, value: DataActuator):
-        """ Move the actuator to the relative target actuator value defined by value
+        """Move the actuator to the relative target actuator value defined by value
 
         Parameters
         ----------
         value: (float) value of the relative target positioning
         """
+        self.current_position = self.stage.get_position(self._axis_names)
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
 
-        self.stage.move_relative(
-            value.value())  # when writing your own plugin replace this line
-        self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
+        self.stage.move_relative(value.value())
+        self.emit_status(
+            ThreadCommand(
+                "Update_Status", ["SHRC203 has moved to the relative target position"]
+            )
+        )
 
-    # DK - use home method
     def move_home(self):
         """Call the reference method of the controller"""
-        self.stage.home()  # when writing your own plugin replace this line
-        self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
+        self.stage.home()
+        self.emit_status(
+            ThreadCommand("Update_Status", ["SHRC203 has moved to the home position"])
+        )
 
-    # DK - use stop method
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
-        self.stage.stop()  # when writing your own plugin replace this line
-        self.emit_status(ThreadCommand('Update_Status', ['Instrument stopped']))
+        self.stage.stop()
+        self.emit_status(ThreadCommand("Update_Status", ["Instrument stopped"]))
 
-    if __name__ == '__main__':
+    if __name__ == "__main__":
         main(__file__)
