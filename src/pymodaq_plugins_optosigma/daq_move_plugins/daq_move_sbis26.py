@@ -20,6 +20,7 @@ class PythonWrapperOfYourInstrument:
 #     pymodaq_plugins_my_plugin/daq_move_plugins
 
 rsrc_name = "" # DK - delete this line
+# DK - if the class name is DAQ_Move_SBIS26, then the file name should be daq_move_SBIS26.py (the same case after the last underscore)
 class DAQ_Move_SBIS26(DAQ_Move_base):
     """ Instrument plugin class for an actuator.
     
