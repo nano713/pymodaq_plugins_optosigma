@@ -128,9 +128,8 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         elif param.name() == "loop":
             self.stage.set_loop()
         elif param.name() == "unit":
-            self.stage.set_unit(
-                self._controller_units
-            )  # AD: How do we do this if it is in dictionary format?
+            unit_dict = {"um": "U", "mm": "M", "nm": "N", "deg": "D", "pulse": "P"}
+            self.stage.set_unit(unit_dict[self.settings["unit"]])
         else:
             pass
 
