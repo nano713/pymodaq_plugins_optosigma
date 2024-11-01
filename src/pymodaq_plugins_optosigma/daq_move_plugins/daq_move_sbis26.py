@@ -17,7 +17,7 @@ class PythonWrapperOfYourInstrument:
 #     pymodaq_plugins_my_plugin/daq_move_plugins
 
 rsrc_name = ""
-class DAQ_Move_Template(DAQ_Move_base):
+class DAQ_Move_SBIS26(DAQ_Move_base):
     """ Instrument plugin class for an actuator.
     
     This object inherits all functionalities to communicate with PyMoDAQ’s DAQ_Move module through inheritance via
