@@ -156,7 +156,7 @@ class SHRC203VISADriver:
         """Get the speed of the stage."""
         self._instr.query(f"?:D{channel}")
         speed = self._instr.query(f"?:D{channel}") # DK output example 'S2000F20000R100' where we should use
-        self.speed_ini = speed.spliy("S")[1].split("F")[1].split("R")[0] #only split the speed part
+        self.speed_ini = speed.split("S")[1].split("F")[0] #only split the speed part
         self.speed_fin = speed.split("F")[1].split("R")[0]
         self.accel = speed.split("R")[1]
         return self.speed_ini[channel], self.speed_fin[channel], self.accel_t[channel]
