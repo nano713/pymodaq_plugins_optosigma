@@ -4,6 +4,7 @@ import pyvisa
 from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
+#delete all logger.info
 
 # DK - reuse this class that we wrote in pymeasure instruments. See an example: https://github.com/nano713/pymeasure/blob/dev/sbis26/pymeasure/instruments/newport/esp300.py
 class AxisError(Exception):
@@ -127,8 +128,10 @@ class SHRC203VISADriver:
         """
         if position >= 0:
             self._instr.write(f"A:{channel}+{self.unit}{position}") # DK - need "+" somewhere in the command? Check with the manual
+            logger.info(f"Moving {channel} to {position}")
         else:
             self._instr.write(f"A:{channel}-{self.unit}{abs(position)}")
+            logger.info(f"Moving {channel} to {position}")
         self._instr.write("G:")
         self.wait_for_ready()
         self.position[channel] = position
@@ -166,11 +169,13 @@ class SHRC203VISADriver:
         if position >= 0:
             self._instr.write(
                 f"M:{channel}" + f"+{self.unit}{position}"
-            )  
+            )
+            logger.info(f"Moving {channel} to {position}")  
         else:
             self._instr.write(
                 f"M:{channel}" + f"-{self.unit}{abs(position)}"
             )  
+            logger.info(f"Moving {channel} to {position}")
         self._instr.write("G:")
         self.wait_for_ready()
 

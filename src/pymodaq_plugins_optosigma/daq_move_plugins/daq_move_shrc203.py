@@ -83,7 +83,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
-        self.stage: SHRC203 = None
+        self.stage: SHRC203 = None 
         # self.axis_value = None
         #self.speed_ini = None # DK - Delete
         #self.default_units = "um" # DK - replace with _controller_units to be consistent
@@ -155,7 +155,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         )  # will be useful when controller is slave
 
         if self.is_master:
-            self.stage = SHRC203(rsrc_name) # DK - rsrc_name should be self.settings["rsrc_name"] to call it from the GUI
+            self.stage = SHRC203(self.settings["rsrc_name"]) 
             self.stage.open_connection()
         else:
             logger.warning("No controller has been defined. Please define one")
@@ -176,11 +176,11 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         # value = self.check_bound(value)
         value = self.set_position_with_scaling(value)
 
-        self.stage.move(value.value()) # DK - Add channel attribute (=self.axis_value)
+        self.stage.move(value.value(), self.axis_value) # DK - Add channel attribute (=self.axis_value)
         # DK - delete emit_status because this will be recorded on the log file but we do not have to record every signle move.
-        self.emit_status(
-            ThreadCommand("Update_Status", ["SHRC203 has moved to the target position"])
-        )
+        # self.emit_status(
+        #     ThreadCommand("Update_Status", ["SHRC203 has moved to the target position"])
+        # )
 
     # DK - use move_relative method
     def move_rel(self, value: DataActuator):
