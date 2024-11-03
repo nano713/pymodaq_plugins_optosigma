@@ -123,8 +123,7 @@ class SHRC203VISADriver:
         1: Open loop
         0: Close loop
         """
-        self.loop = self.write("") # Write command
-        # loop[channel] 
+        self.loop[channel] = self._instr.write(f"?:F{channel}{loop}")
 
     def get_loop(self, channel):
         """
