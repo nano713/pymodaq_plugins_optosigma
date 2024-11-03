@@ -76,9 +76,9 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             "value": "um",
         },
         {"title": "Loop:", "name": "loop", "type": "int", "value": 0},# DK - 'value' should be  "" (empty)
-        {"title": "Speed:", "name": "speed_ini", "type": "float", "value": 0},# DK - value "" (empty)
+        {"title": "Speed Initial:", "name": "speed_ini", "type": "float", "value": 0},# DK - value "" (empty)
         {"title": "Acceleration Time:", "name": "accel_t", "type": "float", "value": 1},# DK - value "" (empty). 'title' should be "Acceleration Time"
-        {"title": "Speed:", "name": "speed_fin", "type": "float", "value": 1.2},# DK - value "" (empty)
+        {"title": "Speed Final:", "name": "speed_fin", "type": "float", "value": 1.2},# DK - value "" (empty)
     ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):

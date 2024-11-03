@@ -59,7 +59,7 @@ class SHRC203VISADriver:
         """
         self._instr = None
         self.rsrc_name = rsrc_name
-        self.unit = None # DK - initialize unit
+        self.unit = "" # DK - initialize unit
         # self.channel = {"X": 1, "Y": 2, "Z": 3}
         # self.channel = [1, 2, 3]
         self.loop = [None, None, None]# {"X": None, "Y": None, "Z": None
@@ -72,7 +72,6 @@ class SHRC203VISADriver:
         # self.speed_fin = {"X": None, "Y": None, "Z": None}
         # self.accel_t = {"X": None, "Y": None, "Z": None}
 
-
     def set_unit(self, unit: str):
         """
         Set the unit of the controller.
@@ -84,6 +83,7 @@ class SHRC203VISADriver:
         """
         self.unit = unit
 
+    # TODO test this method
     def check_error(self, channel):
         """
         Check if there is an error in the specified channel.
@@ -95,7 +95,7 @@ class SHRC203VISADriver:
             time
             error = self._instr.query(f"SRQ:{channel}S")
             error = error.split(",")[0]            
-            if error[0] == self.unit[channel]:
+            if error[0] == self.unit:
                 return error
             else:
                 return AxisError(error)
@@ -117,14 +117,18 @@ class SHRC203VISADriver:
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
 
+    # DK - TODO test again.
     def set_loop(self, loop : dict, channel : int):
         """
         Open the loop of the specified channel.
         1: Open loop
         0: Close loop
         """
-        self.loop[channel] = self._instr.write(f"?:F{channel}{loop}")
+        self._instr.write(f"F:{channel}{loop}")
+        # if self.check_error(channel) == "OK":
+        self.loop[channel-1] = loop
 
+    # DK - TODO test again.
     def get_loop(self, channel):
         """
         Get the loop status of the specified channel."""
@@ -141,7 +145,7 @@ class SHRC203VISADriver:
             self._instr.write(f"A:{channel}-{self.unit}{abs(position)}")
             logger.info(f"Moving {channel} to {position}")
         self._instr.write("G:")
-        self.wait_for_ready()
+        self.wait_for_ready(channel)
         self.position[channel-1] = position
         # self.position[list(self.channel.keys())[channel-1]] = position
 
@@ -186,12 +190,12 @@ class SHRC203VISADriver:
             )  
             logger.info(f"Moving {channel} to {position}")
         self._instr.write("G:")
-        self.wait_for_ready()
+        self.wait_for_ready(channel)
 
     def home(self, channel):
         """Move the stage to the home position."""
         self._instr.write(f"H:{channel}")
-        self.wait_for_ready(self, f"{channel}")
+        self.wait_for_ready(channel)
 
     
     def wait_for_ready(self, channel):
@@ -200,7 +204,7 @@ class SHRC203VISADriver:
         while self.read_state(channel) != "R":
             print(self.read_state(channel)) # DK - make sure you delete print() at the end
             time1 = time.time() - time0
-            if time1 >= 60:
+            if time1 >= 60: # seconds
                 logger.warning("Timeout")
                 self.check_error(channel)
                 break
