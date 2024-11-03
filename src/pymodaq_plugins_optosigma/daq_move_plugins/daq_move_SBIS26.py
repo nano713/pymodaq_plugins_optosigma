@@ -41,7 +41,7 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
     
     is_multiaxes = True 
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y": 2, "Z": 3}
-    _controller_units: Union[str, List[str]] = "um" # DK - replace with "". SBIS26 only has pulse unit.
+    _controller_units: Union[str, List[str]] = "" # DK - replace with "". SBIS26 only has pulse unit.
     _epsilon: Union[float, List[float]] = (
         0.1  
     )
@@ -51,8 +51,8 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
 
     params = [
         {
-            "title": "Resource Name:",
-            "name": "serial_name",
+            "title": "Instrument Address",
+            "name": "visa_name",
             "type": "str",
             "value": "ASRL4::INSTR",
         },
@@ -69,22 +69,8 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
     ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
-        #  TODO declare the type of the wrapper (and assign it to self.controller) you're going to use for easy
-        #  autocompletion
         self.controller: SBIS26 = None
 
-    # def get_actuator_value(self):
-    #     """Get the current value from the hardware with scaling conversion.
-
-    #     Returns
-    #     -------
-    #     float: The position obtained after scaling conversion.
-    #     """
-    #     ## TODO for your custom plugin
-    #     raise NotImplemented  # when writing your own plugin remove this line
-    #     pos = DataActuator(data=self.controller.your_method_to_get_the_actuator_value())  # when writing your own plugin replace this line
-    #     pos = self.get_position_with_scaling(pos)
-    #     return pos
 
     def close(self):
         """Terminate the communication protocol"""
@@ -99,7 +85,7 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
             A given parameter (within detector_settings) whose value has been changed by the user
         """
         if param.name() == "speed_ini" or param.name() == "speed_fin" or param.name() == "accel_t":
-           self.controller.set_speed(self.speed_ini, self.speed_fin, self.accel_t, self._axis_names)
+           self.controller.set_speed(self.speed_ini, self.speed_fin, self.accel_t, self.axis_value)
            # AD: self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"], self.settings["accel_t"], self._axis_names)?
            # or is this old formatting that is no longer used? 
         elif param.name() == "unit":
@@ -126,8 +112,8 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
 
         self.ini_stage_init(slave_controller=controller)
         if self.is_master: 
-            self.controller = SBIS26(self.settings["rsrc_name"])
-            self.controller.open_connection()
+            self.controller = SBIS26(self.settings["visa_name"])
+            self.controller.connect()
         else: 
             logger.warning("This plugin is not initialized")
         
@@ -156,22 +142,22 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         ----------
         value: (float) value of the relative target positioning
         """
-        self.current_position = self.controller.get_position(self._axis_names)
+        self.current_position = self.controller.get_position(self._axis_names, self.axis_value)
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
 
-        self.controller.move_relative(value.value())
-        self.emit_status(ThreadCommand('Update_Status', ['SBIS26 has moved to the relative target position']))
+        self.controller.move_relative(value.value(), self.axis_value)
+        # self.emit_status(ThreadCommand('Update_Status', ['SBIS26 has moved to the relative target position']))
 
     def move_home(self):
         """Call the reference method of the controller"""
-        self.controller.home()
-        self.emit_status(ThreadCommand('Update_Status', ['SBIS26 has moved to the home position']))
+        self.controller.home(self.axis_value)
+        # self.emit_status(ThreadCommand('Update_Status', ['SBIS26 has moved to the home position']))
 
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
-        self.controller.stop()
+        self.controller.stop(self.axis_value)
         self.emit_status(ThreadCommand('Update_Status', ['SBIS26 has stopped moving']))
 
 if __name__ == '__main__':
