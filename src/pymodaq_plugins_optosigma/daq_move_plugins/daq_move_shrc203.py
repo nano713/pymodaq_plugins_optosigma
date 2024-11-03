@@ -190,28 +190,28 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         ----------
         value: (float) value of the relative target positioning
         """
-        self.current_position = self.stage.get_position(self._axis_names) # DK - replace with self.axis_value
+        self.current_position = self.stage.get_position(self.axis_value) # DK - replace with self.axis_value
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
 
-        self.stage.move_relative(value.value()) # DK - Add channel attribute (=self.axis_value)
-        self.emit_status( # DK - delete
-            ThreadCommand(
-                "Update_Status", ["SHRC203 has moved to the relative target position"]
-            )
-        )
+        self.stage.move_relative(value.value(), self.axis_value) # DK - Add channel attribute (=self.axis_value)
+        # self.emit_status( # DK - delete
+        #     ThreadCommand(
+        #         "Update_Status", ["SHRC203 has moved to the relative target position"]
+        #     )
+        # )
 
     def move_home(self):
         """Call the reference method of the controller"""
-        self.stage.home() # DK - Add channel attribute (=self.axis_value)
-        self.emit_status( # DK - delete
-            ThreadCommand("Update_Status", ["SHRC203 has moved to the home position"])
-        )
+        self.stage.home(self.axis_value) # DK - Add channel attribute (=self.axis_value)
+        # self.emit_status( # DK - delete
+        #     ThreadCommand("Update_Status", ["SHRC203 has moved to the home position"])
+        # )
 
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
-        self.stage.stop() # DK - Add channel attribute (=self.axis_value)
+        self.stage.stop(self.axis_value) # DK - Add channel attribute (=self.axis_value)
         self.emit_status(ThreadCommand("Update_Status", ["Instrument stopped"])) # DK this is okay to keep because stop does not often happen.
 
     if __name__ == "__main__":
