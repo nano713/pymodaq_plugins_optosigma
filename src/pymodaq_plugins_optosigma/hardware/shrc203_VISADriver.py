@@ -126,9 +126,9 @@ class SHRC203VISADriver:
         Move the specified channel to the position.
         """
         if position >= 0:
-            self._instr.write(f"A:{channel}{self.unit}{position}") # DK - need "+" somewhere in the command? Check with the manual
+            self._instr.write(f"A:{channel}+{self.unit}{position}") # DK - need "+" somewhere in the command? Check with the manual
         else:
-            self._instr.write(f"A:{channel}{self.unit}{abs(position)}")
+            self._instr.write(f"A:{channel}-{self.unit}{abs(position)}")
         self._instr.write("G:")
         self.wait_for_ready()
         self.position[channel] = position
