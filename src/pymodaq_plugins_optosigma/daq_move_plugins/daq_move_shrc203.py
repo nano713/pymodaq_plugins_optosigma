@@ -21,7 +21,6 @@ logger = set_logger(get_module_name(__file__))
 # DK - follow the naming convention. this file name should be daq_move_SHRC203. See
 # https://pymodaq.cnrs.fr/en/4.4.x/developer_folder/instrument_plugins.html#naming-convention.
 
-# rsrc_name = "" DK - Delete. This will be defined in params
 
 # The file name should be daq_move_SHRC203.py and the class name should be DAQ_Move_SHRC203 (consistent upper/lower case)
 class DAQ_Move_SHRC203(DAQ_Move_base):
@@ -63,9 +62,9 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
 
     params = [
         {
-            "title": "Serial Number:",
-            "name": "serial_number",
-            "type": "list",
+            "title": "Instrument Address:",
+            "name": "visa_name",
+            "type": "str",
             "value": "ASRL3::INSTR",# DK - Replace this with "ASRL3::INSTR" or "" (empty). "value" is used as an initial value. :
                                     # Make note value must be changed to the actual serial number of the device.
         },
@@ -78,7 +77,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         },
         {"title": "Loop:", "name": "loop", "type": "int", "value": 0},# DK - 'value' should be  "" (empty)
         {"title": "Speed:", "name": "speed_ini", "type": "float", "value": 0},# DK - value "" (empty)
-        {"title": "Acceleration:", "name": "accel_t", "type": "float", "value": 1},# DK - value "" (empty). 'title' should be "Acceleration Time"
+        {"title": "Acceleration Time:", "name": "accel_t", "type": "float", "value": 1},# DK - value "" (empty). 'title' should be "Acceleration Time"
         {"title": "Speed:", "name": "speed_fin", "type": "float", "value": 1.2},# DK - value "" (empty)
     ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
@@ -155,7 +154,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         )  # will be useful when controller is slave
 
         if self.is_master:
-            self.stage = SHRC203(self.settings["rsrc_name"]) 
+            self.stage = SHRC203(self.settings["visa_name"]) 
             self.stage.open_connection()
         else:
             logger.warning("No controller has been defined. Please define one")
