@@ -7,11 +7,6 @@ from pymodaq_plugins_optosigma.hardware.Sbis26_VISADriver import SBIS26
 logger = logging.getLogger(__name__)
 
 
-# DK - Delete this class because we use the separate hardware code
-class PythonWrapperOfYourInstrument:
-    #  TODO Replace this fake class with the import of the real python wrapper of your instrument
-    pass
-
 # TODO:
 # (1) change the name of the following class to DAQ_Move_TheNameOfYourChoice
 # (2) change the name of this file to daq_move_TheNameOfYourChoice ("TheNameOfYourChoice" should be the SAME
@@ -56,11 +51,11 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
 
     params = [
         {
-            "title": "Serial Number:",
-            "name": "serial_number",
-            "type": "list",
-            "limits": rsrc_name,
-            "value": rsrc_name[0],
+            "title": "Resource Name:",
+            "name": "serial_name",
+            "type": "str",
+            # "limits": rsrc_name,
+            "value": "",
         },
         {
             "title": "Unit:",
@@ -132,7 +127,7 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
 
         self.ini_stage_init(slave_controller=controller)
         if self.is_master: 
-            self.controller = SBIS26(rsrc_name)
+            self.controller = SBIS26(self.settings["rsrc_name"])
             self.controller.open_connection()
         else: 
             logger.warning("This plugin is not initialized")
@@ -151,10 +146,10 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
 
         value = self.set_position_with_scaling(value)
 
-        self.controller.move(value.value())
-        self.emit_status(
-            ThreadCommand("Update_Status", ["SBIS26 has moved to the target position"])
-        )
+        self.controller.move(value.value(), self.axis_value)
+        # self.emit_status(
+        #     ThreadCommand("Update_Status", ["SBIS26 has moved to the target position"])
+        # )
     def move_rel(self, value: DataActuator):
         """ Move the actuator to the relative target actuator value defined by value
 

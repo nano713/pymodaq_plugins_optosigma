@@ -58,10 +58,24 @@ class SBIS26VISADriver:
             channel (int): Channel of the stage.
         Returns (str): Status of the stage.
         """
+
+        # if key is either B or R, return status_str[key], if not run status_str = _stage.query(f"SRQ:D,{channel}"),  again within a while loop, elif timeout
+
         self._stage.query(f"SRQ:D,{channel}") # DK - add while loop if possible
         status_str = self._stage.query(f"SRQ:D,{channel}")
+
+        # time0 = time.time()
+        # while True:
+        #     if status_str == "B" or status_str == "R":
+        #         return status_str[key]
+        #     elif:
+        #         time.time() < time
+        #         break
+        #     else:
+        #         status_str = self._stage.query(f"SRQ:D,{channel}")
         key = status_str.split(",")[-1]
-        return status_str[key]
+        return key 
+    
     def set_unit(self, unit : str):
         """
         Set the unit of the controller.
@@ -115,7 +129,7 @@ class SBIS26VISADriver:
         self.speed_ini = speed_ini
         self.speed_fin = speed_fin
         self.accel_t = accel_t
-        if 0 < speed_ini < speed_fin and accel_t > 0:
+        if 0 < speed_ini <= speed_fin and accel_t > 0:
             self._stage.write(f"D:D,{channel},{speed_ini},{speed_fin},{accel_t}") 
         else:
             logger.warning("Invalid parameters")
