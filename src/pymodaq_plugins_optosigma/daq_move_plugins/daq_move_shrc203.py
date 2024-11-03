@@ -51,7 +51,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     is_multiaxes = True 
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y": 2, "Z": 3}
     # DK - It may be good to use 'm' unit to apply _controller_units feature. I am afraid that mm becomes kilo micrometers k um
-    _controller_units: Union[str, List[str]] = "um" # DK - replace with SHRC203VISADriver.default_units to get the default unit
+    _controller_units: Union[str, List[str]] = SHRC203.default_units # DK - replace with SHRC203VISADriver.default_units to get the default unit
     _epsilon: Union[float, List[float]] = (
         0.1  # TODO replace this by a value that is correct depending on your controller
     )
@@ -85,8 +85,8 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     def ini_attributes(self):
         self.stage: SHRC203 = None
         # self.axis_value = None
-        self.speed_ini = None # DK - Delete
-        self.default_units = "um" # DK - replace with _controller_units to be consistent
+        #self.speed_ini = None # DK - Delete
+        #self.default_units = "um" # DK - replace with _controller_units to be consistent
 
     # DK data = self.controller.get_position(self.axis_value) See example in https://github.com/nano713/pymodaq_plugins_thorlabs/blob/dev/kpz_plugin/src/pymodaq_plugins_thorlabs/daq_move_plugins/daq_move_BrushlessDCMotor.py
     def get_actuator_value(self):
