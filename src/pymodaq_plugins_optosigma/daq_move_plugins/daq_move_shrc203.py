@@ -66,14 +66,14 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             "title": "Serial Number:",
             "name": "serial_number",
             "type": "list",
-            "limits": rsrc_name,# DK - Delete this line. 'limits' should be a list format like ["ASRL3::INSTR", "ASRL4::INSTR"]. Since we do not have candidates, just delete this.
-            "value": rsrc_name[0],# DK - Replace this with "ASRL3::INSTR" or "" (empty). "value" is used as an initial value. :
+            "value": "ASRL3::INSTR",# DK - Replace this with "ASRL3::INSTR" or "" (empty). "value" is used as an initial value. :
+                                    # Make note value must be changed to the actual serial number of the device.
         },
         {
             "title": "Unit:",
             "name": "unit",
             "type": "list",
-            "values": ["um", "mm", "nm", "deg", "pulse"], # DK - replace 'values' with 'limits'
+            "limits": ["um", "mm", "nm", "deg", "pulse"], # DK - replace 'values' with 'limits'
             "value": "um",
         },
         {"title": "Loop:", "name": "loop", "type": "int", "value": 0},# DK - 'value' should be  "" (empty)
@@ -97,7 +97,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         float: The position obtained after scaling conversion.
         """
         pos = DataActuator(
-            data=self.stage.get_position(self._axis_names) # DK - replace with self.axis_value
+            data=self.stage.get_position(self.axis_value) # DK - replace with self.axis_value
         )  # when writing your own plugin replace this line
         pos = self.get_position_with_scaling(pos)
         return pos
@@ -131,7 +131,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         elif param.name() == "unit":
             unit_dict = {"um": "U", "mm": "M", "nm": "N", "deg": "D", "pulse": "P"}
             self.stage.set_unit(unit_dict[self.settings["unit"]])
-            _controller_units = self.settings["unit"] # DK -add this line to update the unit in GUI
+            self._controller_units = self.settings["unit"] # DK -add this line to update the unit in GUI
         else:
             pass
 
@@ -151,7 +151,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             False if initialization failed otherwise True
         """
         self.ini_stage_init(
-            slave_controller=controller
+            slave_controller=self.stage
         )  # will be useful when controller is slave
 
         if self.is_master:
