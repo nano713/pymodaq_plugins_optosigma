@@ -54,8 +54,7 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
             "title": "Resource Name:",
             "name": "serial_name",
             "type": "str",
-            # "limits": rsrc_name,
-            "value": "",
+            "value": "ASRL4::INSTR",
         },
         {
             "title": "Unit:",
