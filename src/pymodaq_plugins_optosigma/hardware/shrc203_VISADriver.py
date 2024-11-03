@@ -64,7 +64,7 @@ class SHRC203VISADriver:
         self.position = {"X":None, "Y": None,"Z" :None}
         self.speed_ini = {"X": None, "Y": None, "Z": None}
         self.speed_fin = {"X": None, "Y": None, "Z": None}
-        self.accel = {"X": None, "Y": None, "Z": None}
+        self.accel_t = {"X": None, "Y": None, "Z": None}
 
     def set_unit(self, unit: str):
         """
@@ -138,38 +138,38 @@ class SHRC203VISADriver:
         return self.position[channel]
 
     
-    def set_speed(self, speed_ini, speed_fin, accel, channel): # accel should be accel_t to make it consistent with the rest of the code
+    def set_speed(self, speed_ini, speed_fin, accel_t, channel): 
         """Sets the speed of the stage.
         Args:
             speed_inital (int): Initial speed of the stage.
             speed_final (int): Final speed of the stage.
-            accel (int): Acceleration time of the stage.
+            accel_t(int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
 
-        if 0 < speed_ini < speed_fin and accel > 0:
-            self._instr.write(f"D:{channel},{speed_ini},{speed_fin},{accel}")
+        if 0 < speed_ini < speed_fin and accel_t> 0:
+            self._instr.write(f"D:{channel},{speed_ini},{speed_fin},{accel_t}")
         else:
             Exception("Invalid parameters")
 
     def get_speed(self, channel):
         """Get the speed of the stage."""
         self._instr.query(f"?:D{channel}")
-        speed = self._instr.query(f"?:D{channel}") # DK output example 'S2000F20000R100' where we should use
-        self.speed_ini = speed.split("S")[1].split("F")[0] #only split the speed part
+        speed = self._instr.query(f"?:D{channel}")
+        self.speed_ini = speed.split("S")[1].split("F")[0]
         self.speed_fin = speed.split("F")[1].split("R")[0]
-        self.accel = speed.split("R")[1]
+        self.accel_t= speed.split("R")[1]
         return self.speed_ini[channel], self.speed_fin[channel], self.accel_t[channel]
 
     def move_relative(self, position, channel):
         """Move the stage to a relative position."""
         if position >= 0:
             self._instr.write(
-                f"M:{channel}" + f"{self.unit}{position}"
+                f"M:{channel}" + f"+{self.unit}{position}"
             )  
         else:
             self._instr.write(
-                f"M:{channel}" + f"{self.unit}{abs(position)}"
+                f"M:{channel}" + f"-{self.unit}{abs(position)}"
             )  
         self._instr.write("G:")
         self.wait_for_ready()
