@@ -132,9 +132,6 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         value = self.set_position_with_scaling(value)
 
         self.controller.move(value.value(), self.axis_value)
-        # self.emit_status(
-        #     ThreadCommand("Update_Status", ["SBIS26 has moved to the target position"])
-        # )
     def move_rel(self, value: DataActuator):
         """ Move the actuator to the relative target actuator value defined by value
 
@@ -148,11 +145,9 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         value = self.set_position_relative_with_scaling(value)
 
         self.controller.move_relative(value.value(), self.axis_value)
-        # self.emit_status(ThreadCommand('Update_Status', ['SBIS26 has moved to the relative target position']))
-
     def move_home(self):
         """Call the reference method of the controller"""
-        self.controller.home(self.axis_value)
+        self.controller.home(self.axis_value, self.axis_value)
         # self.emit_status(ThreadCommand('Update_Status', ['SBIS26 has moved to the home position']))
 
     def stop_motion(self):
