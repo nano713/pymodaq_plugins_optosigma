@@ -50,6 +50,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     is_multiaxes = True 
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y": 2, "Z": 3}
     # DK - It may be good to use 'm' unit to apply _controller_units feature. I am afraid that mm becomes kilo micrometers k um
+    # DK - redo default units.
     _controller_units: Union[str, List[str]] = SHRC203.default_units # DK - replace with SHRC203VISADriver.default_units to get the default unit
     _epsilon: Union[float, List[float]] = (
         0.1  # TODO replace this by a value that is correct depending on your controller
@@ -183,6 +184,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         # )
 
     # DK - use move_relative method
+    # DK - follow template
     def move_rel(self, value: DataActuator):
         """Move the actuator to the relative target actuator value defined by value
 
