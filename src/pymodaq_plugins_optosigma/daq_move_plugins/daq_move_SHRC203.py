@@ -192,18 +192,14 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         ----------
         value: (float) value of the relative target positioning
         """
-        self.current_position = self.stage.get_position(self.axis_value) # DK - replace with self.axis_value
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
+        logger.info(f"value={value} in move_rel")
 
-        self.stage.move_relative(value.value(), self.axis_value) # DK - Add channel attribute (=self.axis_value)
-        # self.emit_status( # DK - delete
-        #     ThreadCommand(
-        #         "Update_Status", ["SHRC203 has moved to the relative target position"]
-        #     )
-        # )
-
+        self.stage.move_relative(value.value(), self.axis_value)
+        logger.info(f"pos={value.value()} in move_rel") # DK - Add channel attribute (=self.axis_value)
+        
     def move_home(self):
         """Call the reference method of the controller"""
         self.stage.home(self.axis_value) # DK - Add channel attribute (=self.axis_value)
