@@ -154,7 +154,6 @@ class SHRC203VISADriver:
         self._instr.write("G:")
         self.wait_for_ready(channel)
         self.position[channel-1] = position
-        # self.position[list(self.channel.keys())[channel-1]] = position
 
 
     def get_position(self, channel):
