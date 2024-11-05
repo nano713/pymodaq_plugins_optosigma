@@ -51,7 +51,7 @@ class SHRC203VISADriver:
     """
     Class to handle the communication with the Optosigma SHRC203 controller using the VISA protocol.
     """
-    default_units = 'um'
+    default_units = 'mm'
 
     def __init__(self, rsrc_name):
         """

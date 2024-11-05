@@ -74,7 +74,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             "name": "unit",
             "type": "str",
             "limits": ["um", "mm", "nm", "deg", "pulse"], # DK - replace 'values' with 'limits'
-            "value": "um",
+            "value": _controller_units,
         },
         {"title": "Loop:", "name": "loop", "type": "int", "value": 0},# DK - 'value' should be  "" (empty)
         {"title": "Speed Initial:", "name": "speed_ini", "type": "float", "value": 0},# DK - value "" (empty)
@@ -83,7 +83,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
-        self.stage: SHRC203 = None 
+        self.stage: SHRC203 = None
         # self.axis_value = None
         #self.speed_ini = None # DK - Delete
         #self.default_units = "um" # DK - replace with _controller_units to be consistent
