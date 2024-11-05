@@ -12,7 +12,6 @@ class SBIS26VISADriver:
 
         self._stage = None
         self.rsrc_name = rsrc_name
-        # self.unit = None # DK - delete. SBIS26 only has pulse unit
         self.speed_ini = [-1, -1, -1]
         self.speed_fin = [-1, -1, -1]
         self.accel_t = [-1, -1, -1]
@@ -57,35 +56,10 @@ class SBIS26VISADriver:
             channel (int): Channel of the stage.
         Returns (str): Status of the stage.
         """
-
-        # if key is either B or R, return status_str[key], if not run status_str = _stage.query(f"SRQ:D,{channel}"),  again within a while loop, elif timeout
-
-        self._stage.query(f"SRQ:D,{channel}")  # DK - add while loop if possible
+        self._stage.query(f"SRQ:D,{channel}") 
         status_str = self._stage.query(f"SRQ:D,{channel}")
-
-        # time0 = time.time()
-        # while True:
-        #     if status_str == "B" or status_str == "R":
-        #         return status_str[key]
-        #     elif:
-        #         time.time() < time
-        #         break
-        #     else:
-        #         status_str = self._stage.query(f"SRQ:D,{channel}")
         key = status_str.split(",")[-1]
         return key
-
-        # def set_unit(self, unit : str):
-
-    #     """
-    #     Set the unit of the controller.
-    #     "N" nanometer designation
-    #     "U" micrometer designation
-    #     "M" mm designation
-    #     "D" degree designation
-    #     "P" Designation without unit (pulse
-    #     """
-    #     self.unit = unit
 
     def get_position(self, channel):
         """Gets the position of the stage.
@@ -152,7 +126,7 @@ class SBIS26VISADriver:
 
         time0 = time.time()
         while self.status(channel) != "R":
-            print(self.status(channel))  # DK - logger.debug(self.status(channel))
+            logger.debug(self.status(channel)) 
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.warning("Timeout")
@@ -167,5 +141,4 @@ class SBIS26VISADriver:
 
     def close(self):
         """Closes the stage."""
-        # self._stage.close()
         self.rm.close()
