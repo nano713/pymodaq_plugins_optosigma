@@ -59,7 +59,7 @@ class SHRC203VISADriver:
         """
         self._instr = None
         self.rsrc_name = rsrc_name
-        self.unit = None # DK - initialize unit
+        self.unit = "" # DK - initialize unit
         # self.channel = {"X": 1, "Y": 2, "Z": 3}
         # self.channel = [1, 2, 3]
         self.loop = [None, None, None]# {"X": None, "Y": None, "Z": None
@@ -72,7 +72,6 @@ class SHRC203VISADriver:
         # self.speed_fin = {"X": None, "Y": None, "Z": None}
         # self.accel_t = {"X": None, "Y": None, "Z": None}
 
-
     def set_unit(self, unit: str):
         """
         Set the unit of the controller.
@@ -84,6 +83,7 @@ class SHRC203VISADriver:
         """
         self.unit = unit
 
+    # TODO test this method
     def check_error(self, channel):
         """
         Check if there is an error in the specified channel.
@@ -91,14 +91,20 @@ class SHRC203VISADriver:
 
         # DK - add timeout with "elif"
         # DK - "U1,K,K,K,R", fake: "OK"
-        while True:
-            time
-            error = self._instr.query(f"SRQ:{channel}S")
-            error = error.split(",")[0]            
-            if error[0] == self.unit[channel]:
-                return AxisError.MESSAGES[error]
-            else:
-                return AxisError(error)
+
+        time0 = time.time()
+        error = self._instr.query(f"SRQ:{channel}S")
+
+        # Check if error is either "1", "3", "7", or "F"
+        while error[0] not in ["1", "3", "7", "F"]:
+             error = self._instr.query(f"SRQ:{channel}S")
+             if time0 - time.time() >= 10:
+                logger.warning("Timeout")
+                break
+
+        error = error.split(",")[0]
+
+        return AxisError.MESSAGES[error]
     
     def open_connection(self): 
                                 
@@ -126,7 +132,9 @@ class SHRC203VISADriver:
         1: Open loop
         0: Close loop
         """
-        self.loop[channel] = self._instr.write(f"?:F{channel}{loop}")
+        self._instr.write(f"F:{channel}{loop}")
+        # if self.check_error(channel) == "OK":
+        self.loop[channel-1] = loop
 
     def get_loop(self, channel):
         """
@@ -144,14 +152,14 @@ class SHRC203VISADriver:
             self._instr.write(f"A:{channel}-{self.unit}{abs(position)}")
             logger.info(f"Moving {channel} to {position}")
         self._instr.write("G:")
-        self.wait_for_ready()
+        self.wait_for_ready(channel)
         self.position[channel-1] = position
 
 
     def get_position(self, channel):
         return self.position[channel-1]
 
-    
+
     def set_speed(self, speed_ini, speed_fin, accel_t, channel): 
         """Sets the speed of the stage.
         Args:
@@ -166,20 +174,23 @@ class SHRC203VISADriver:
         else:
             Exception("Invalid parameters")
 
+    # DK test this method
     def get_speed(self, channel):
         """Get the speed of the stage."""
-      
+
         speed = self._instr.query(f"?:D{channel}")
+
+        time0 = time.time()
         while speed[0] != "S":
             speed = self._instr.query(f"?:D{channel}")
-            if (time.time() - time0) > 60:
+            if time0 - time.time() >= 5:
                 logger.warning("Timeout")
-                return self.speed_ini
-        self._instr.query(f"?:D{channel}")
-        speed = self._instr.query(f"?:D{channel}")
-        self.speed_ini = speed.split("S")[1].split("F")[0]
-        self.speed_fin = speed.split("F")[1].split("R")[0]
-        self.accel_t= speed.split("R")[1]
+                return self.speed_ini[channel-1], self.speed_fin[channel-1], self.accel_t[channel-1]
+                
+
+        self.speed_ini[channel-1] = speed.split("S")[1].split("F")[0]
+        self.speed_fin[channel-1] = speed.split("F")[1].split("R")[0]
+        self.accel_t[channel-1]= speed.split("R")[1]
         return self.speed_ini[channel-1], self.speed_fin[channel-1], self.accel_t[channel-1]
 
     def move_relative(self, position, channel):
@@ -195,12 +206,12 @@ class SHRC203VISADriver:
             )  
             logger.info(f"Moving {channel} to {position}")
         self._instr.write("G:")
-        self.wait_for_ready()
+        self.wait_for_ready(channel)
 
     def home(self, channel):
         """Move the stage to the home position."""
         self._instr.write(f"H:{channel}")
-        self.wait_for_ready(self, f"{channel}")
+        self.wait_for_ready(channel)
 
     
     def wait_for_ready(self, channel):
@@ -209,7 +220,7 @@ class SHRC203VISADriver:
         while self.read_state(channel) != "R":
             print(self.read_state(channel)) # DK - make sure you delete print() at the end
             time1 = time.time() - time0
-            if time1 >= 60:
+            if time1 >= 60: # seconds
                 logger.warning("Timeout")
                 self.check_error(channel)
                 break
