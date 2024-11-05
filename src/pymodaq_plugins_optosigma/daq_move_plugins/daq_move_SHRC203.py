@@ -53,7 +53,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     # DK - redo default units.
     _controller_units: Union[str, List[str]] = SHRC203.default_units # DK - replace with SHRC203VISADriver.default_units to get the default unit
     _epsilon: Union[float, List[float]] = (
-        0.1  # TODO replace this by a value that is correct depending on your controller
+        50e-6  # TODO replace this by a value that is correct depending on your controller
     )
     # TODO it could be a single float of a list of float (as much as the number of axes)
     # Leave this as it is.
@@ -74,18 +74,23 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             "name": "unit",
             "type": "list",
             "limits": ["um", "mm", "nm", "deg", "pulse"], # DK - replace 'values' with 'limits'
-            "value": "um",
+            "value": _controller_units,
         },
-        {"title": "Loop:", "name": "loop", "type": "int", "value": 0},# DK - 'value' should be  "" (empty)
-        {"title": "Speed Initial:", "name": "speed_ini", "type": "float", "value": 0},# DK - value "" (empty)
+        {"title": "Loop:", "name": "loop", "type": "int", "value": 1},# DK - 'value' should be  "" (empty)
+        {"title": "Speed Initial:", "name": "speed_ini", "type": "float", "value": 1},# DK - value "" (empty)
         {"title": "Acceleration Time:", "name": "accel_t", "type": "float", "value": 1},# DK - value "" (empty). 'title' should be "Acceleration Time"
-        {"title": "Speed Final:", "name": "speed_fin", "type": "float", "value": 1.2},# DK - value "" (empty)
+        {"title": "Speed Final:", "name": "speed_fin", "type": "float", "value": 100},# DK - value "" (empty)
     ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
-        self.stage: SHRC203 = None 
+        self.stage: SHRC203 = None
         # self.axis_value = None
-        #self.speed_ini = None # DK - Delete
+        self.unit =  self._controller_units
+        self.speed_ini = self.settings["speed_ini"]
+        self.speed_fin = self.settings["speed_fin"]
+        self.accel_t = self.settings["accel_t"]
+        self.loop = self.settings["loop"]
+
         #self.default_units = "um" # DK - replace with _controller_units to be consistent
 
     # DK data = self.controller.get_position(self.axis_value) See example in https://github.com/nano713/pymodaq_plugins_thorlabs/blob/dev/kpz_plugin/src/pymodaq_plugins_thorlabs/daq_move_plugins/daq_move_BrushlessDCMotor.py
@@ -123,11 +128,11 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             or param.name() == "accel_t"
         ):
             self.stage.set_speed(
-                self.speed_ini, self.speed_fin, self.accel_t, self.axis_value
+                self.settings["speed_ini"], self.settings["speed_fin"], self.settings["accel_t"], self.axis_value
             )
 
         elif param.name() == "loop":
-            self.stage.set_loop(settings.["loop"], self.axis_value)
+            self.stage.set_loop(self.settings["loop"], self.axis_value)
         elif param.name() == "unit":
             unit_dict = {"um": "U", "mm": "M", "nm": "N", "deg": "D", "pulse": "P"}
             self.stage.set_unit(unit_dict[self.settings["unit"]])
@@ -160,22 +165,28 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         else:
             logger.warning("No controller has been defined. Please define one")
 
-        info = "SHRC203 is Initialized"  # DK - replace this line with the actual info
         self.stage.set_mode()
+        self.stage.set_unit(self.unit)
+
+        for i in range(len(self.axis_names)):
+            self.stage.set_loop(self.loop, i + 1)
+            self.stage.set_speed(self.speed_ini, self.speed_fin, self.accel_t, i + 1)
+        info = "SHRC203 is Initialized"  # DK - replace this line with the actual info
         initialized = True
         return info, initialized
 
     # DK - use move method
     def move_abs(self, value: DataActuator): # DK - add channel
-        """Move the actuator to the absolute target defined by value
+        """ Move the actuator to the absolute target defined by value
 
         Parameters
         ----------
         value: (float) value of the absolute target positioning
         """
 
-        # value = self.check_bound(value)
-        value = self.set_position_with_scaling(value)
+        value = self.check_bound(value)  #if user checked bounds, the defined bounds are applied here
+        self.target_value = value
+        value = self.set_position_with_scaling(value)  # apply scaling if the user specified one
 
         self.stage.move(value.value(), self.axis_value) # DK - Add channel attribute (=self.axis_value)
         # DK - delete emit_status because this will be recorded on the log file but we do not have to record every signle move.
