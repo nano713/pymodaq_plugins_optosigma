@@ -72,7 +72,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         {
             "title": "Unit:",
             "name": "unit",
-            "type": "list",
+            "type": "str",
             "limits": ["um", "mm", "nm", "deg", "pulse"], # DK - replace 'values' with 'limits'
             "value": "um",
         },
