@@ -96,7 +96,7 @@ class SHRC203VISADriver:
             error = self._instr.query(f"SRQ:{channel}S")
             error = error.split(",")[0]            
             if error[0] == self.unit[channel]:
-                return error
+                return AxisError.MESSAGES[error]
             else:
                 return AxisError(error)
     
@@ -146,7 +146,6 @@ class SHRC203VISADriver:
         self._instr.write("G:")
         self.wait_for_ready()
         self.position[channel-1] = position
-        # self.position[list(self.channel.keys())[channel-1]] = position
 
 
     def get_position(self, channel):
@@ -162,13 +161,20 @@ class SHRC203VISADriver:
             channel (int): Channel of the stage.
         """
 
-        if 0 < speed_ini < speed_fin and accel_t> 0:
+        if 0 < speed_ini <= speed_fin and accel_t> 0:
             self._instr.write(f"D:{channel},{speed_ini},{speed_fin},{accel_t}")
         else:
             Exception("Invalid parameters")
 
     def get_speed(self, channel):
         """Get the speed of the stage."""
+      
+        speed = self._instr.query(f"?:D{channel}")
+        while speed[0] != "S":
+            speed = self._instr.query(f"?:D{channel}")
+            if (time.time() - time0) > 60:
+                logger.warning("Timeout")
+                return self.speed_ini
         self._instr.query(f"?:D{channel}")
         speed = self._instr.query(f"?:D{channel}")
         self.speed_ini = speed.split("S")[1].split("F")[0]
