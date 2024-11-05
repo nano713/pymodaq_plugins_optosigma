@@ -99,7 +99,7 @@ class SHRC203VISADriver:
                 return error
             else:
                 return AxisError(error)
-
+    
     def open_connection(self): 
                                 
         """
@@ -116,6 +116,9 @@ class SHRC203VISADriver:
             logger.info(f"Connection to {self._instr} successful")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
+    
+    def set_mode(self):
+        self._instr.write("MODE:HOST")
 
     # DK - TODO test again.
     def set_loop(self, loop : dict, channel : int):
