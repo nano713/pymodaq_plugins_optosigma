@@ -127,7 +127,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             )
 
         elif param.name() == "loop":
-            self.stage.set_loop()
+            self.stage.set_loop(settings.["loop"], self.axis_value)
         elif param.name() == "unit":
             unit_dict = {"um": "U", "mm": "M", "nm": "N", "deg": "D", "pulse": "P"}
             self.stage.set_unit(unit_dict[self.settings["unit"]])
