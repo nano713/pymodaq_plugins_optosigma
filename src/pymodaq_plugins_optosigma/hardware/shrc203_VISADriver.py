@@ -91,14 +91,20 @@ class SHRC203VISADriver:
 
         # DK - add timeout with "elif"
         # DK - "U1,K,K,K,R", fake: "OK"
-        while True:
-            time
-            error = self._instr.query(f"SRQ:{channel}S")
-            error = error.split(",")[0]            
-            if error[0] == self.unit:
-                return error
-            else:
-                return AxisError(error)
+
+        time0 = time.time()
+        error = self._instr.query(f"SRQ:{channel}S")
+
+        # Check if error is either "1", "3", "7", or "F"
+        while error[0] not in ["1", "3", "7", "F"]:
+             error = self._instr.query(f"SRQ:{channel}S")
+             if time0 - time.time() >= 10:
+                logger.warning("Timeout")
+                break
+
+        error = error.split(",")[0]
+
+        return AxisError.MESSAGES[error]
     
     def open_connection(self): 
                                 
@@ -120,7 +126,6 @@ class SHRC203VISADriver:
     def set_mode(self):
         self._instr.write("MODE:HOST")
 
-    # DK - TODO test again.
     def set_loop(self, loop : dict, channel : int):
         """
         Open the loop of the specified channel.
@@ -131,7 +136,6 @@ class SHRC203VISADriver:
         # if self.check_error(channel) == "OK":
         self.loop[channel-1] = loop
 
-    # DK - TODO test again.
     def get_loop(self, channel):
         """
         Get the loop status of the specified channel."""
@@ -156,7 +160,7 @@ class SHRC203VISADriver:
     def get_position(self, channel):
         return self.position[channel-1]
 
-    
+
     def set_speed(self, speed_ini, speed_fin, accel_t, channel): 
         """Sets the speed of the stage.
         Args:
@@ -166,18 +170,28 @@ class SHRC203VISADriver:
             channel (int): Channel of the stage.
         """
 
-        if 0 < speed_ini < speed_fin and accel_t> 0:
+        if 0 < speed_ini <= speed_fin and accel_t> 0:
             self._instr.write(f"D:{channel},{speed_ini},{speed_fin},{accel_t}")
         else:
             Exception("Invalid parameters")
 
+    # DK test this method
     def get_speed(self, channel):
         """Get the speed of the stage."""
-        self._instr.query(f"?:D{channel}")
+
         speed = self._instr.query(f"?:D{channel}")
-        self.speed_ini = speed.split("S")[1].split("F")[0]
-        self.speed_fin = speed.split("F")[1].split("R")[0]
-        self.accel_t= speed.split("R")[1]
+
+        time0 = time.time()
+        while speed[0] != "S":
+            speed = self._instr.query(f"?:D{channel}")
+            if time0 - time.time() >= 5:
+                logger.warning("Timeout")
+                return self.speed_ini[channel-1], self.speed_fin[channel-1], self.accel_t[channel-1]
+                
+
+        self.speed_ini[channel-1] = speed.split("S")[1].split("F")[0]
+        self.speed_fin[channel-1] = speed.split("F")[1].split("R")[0]
+        self.accel_t[channel-1]= speed.split("R")[1]
         return self.speed_ini[channel-1], self.speed_fin[channel-1], self.accel_t[channel-1]
 
     def move_relative(self, position, channel):
