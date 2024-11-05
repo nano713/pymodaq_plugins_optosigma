@@ -160,6 +160,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
             logger.warning("No controller has been defined. Please define one")
 
         info = "SHRC203 is Initialized"  # DK - replace this line with the actual info
+        self.stage.set_mode()
         initialized = True
         return info, initialized
 
