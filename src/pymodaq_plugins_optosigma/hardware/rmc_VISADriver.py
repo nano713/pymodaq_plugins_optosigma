@@ -1,35 +1,45 @@
-
 import pyvisa 
 import time
+import logging
 logger = logging.getLogger(__name__)
 
-class RMCVISADRIVER():
+class AxisError(Exception):
+    MESSAGES = {
+        "K" : "Normal state", 
+        "A" : "Other",
+        "O" : "Overflow"    
+    }
+    def __init__(self, error_code):
+        self.message = self.MESSAGES[error_code]
+
+class RMCVISADriver:
     """Class to communicate with the RMC Actuator"""
 
-    default_units = ""
+    default_units = "mm"
 
     def __init__(self, rsrc_name):
         self._actuator = None
         self.rsrc_name = rsrc_name
-        self.unit = ""
-        self.position = [None, None, None]
-        self.speed_ini = [None, None, None]
-        self.speed_fin = [None, None, None]
-        self.accel_t = [None, None, None]
+        self.position = [None, None]
+        self.speed = [None, None]
     
-
-    def set_unit(self, unit):
-        self.unit = unit
+    def check_error(self):
+        error = self._actuator.query("Q:")
+        error = error.split(",")[2]
+        if error != "K":
+            logger.error(f"Error: {error}")
+            AxisError(error)
     
-    def set_speed(self, speed_ini, speed_fin, accel_t, channel): 
-        if 0 < speed_ini <= speed_fin:
-            self._actuator.write(f"D:W{channel}J{speed_ini}J{speed_fin}") #TODO: check this
+    def set_speed(self, speed, channel): 
+        if 0 < speed <= 8:
+            speed = self._actuator.write(f"D:{channel}J{speed}")
+            self.speed[channel-1] = speed
         else: 
             Exception("Invalid speed values")
 
     def get_speed(self, channel): 
         """Returns the speed of the specified channel."""
-        raise NotImplemented 
+        return self.speed[channel-1]
  
     def connect(self):
         try:
@@ -52,12 +62,14 @@ class RMCVISADRIVER():
             self._actuator.write(f"A:{channel}-{self.unit}{abs(position)}")
         self._actuator.write("G:")
         self.wait_for_ready(channel)
-        self.position[channel-1] = position
+        # self.position[channel-1] = position
 
 
     def get_position(self, channel): 
         """Returns the position of the specified channel."""
-        return self.position[channel-1]
+        position = self._actuator.query(f"Q:")
+        position = int(position.split(",")[channel-1].replace(" ",""))
+        return position
 
     def move_relative(self, position, channel): 
         if position >= 0: 
@@ -68,10 +80,12 @@ class RMCVISADRIVER():
             logger.info(f"Moving {channel} to {position}{self.unit}")
         self._actuator.write("G:") #check if this is correct
         self.wait_for_ready(channel)
-        self.position[channel-1] = position
+        # self.position[channel-1] = position
          
     def home(self, channel):
         self._actuator.write(f"H:{channel}")
+        logger.info(f"Homing {channel}")
+        self.wait_for_ready(channel)
     
     def wait_for_ready(self, channel):
         time0 = time.time()
@@ -92,7 +106,8 @@ class RMCVISADRIVER():
     
     def read_state(self, channel): 
         """Returns the state of the specified channel."""
-        state = self._actuator.w(f"Q:{channel}")
+        state = self._actuator.query("!:")
+        state = state.split(",")[channel-1]
         return state
     
     def close(self):
