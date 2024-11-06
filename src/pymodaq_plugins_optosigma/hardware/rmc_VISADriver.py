@@ -64,7 +64,6 @@ class RMCVISADriver:
         self.wait_for_ready(channel)
         # self.position[channel-1] = position
 
-
     def get_position(self, channel): 
         """Returns the position of the specified channel."""
         position = self._actuator.query(f"Q:")
