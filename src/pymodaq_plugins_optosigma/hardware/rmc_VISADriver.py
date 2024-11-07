@@ -53,30 +53,35 @@ class RMCVISADriver:
     
     def set_mode(self):
         self._actuator.write("P:1") #Manual mode disabeled
+        
 
     def move(self, position, channel):
         """Move the actuator to the specified position on the given channel."""
         if position >= 0:
-            self._actuator.write(f"A:{channel}+{self.unit}{position}")
+            self._actuator.write(f"A:{channel}+U{position}")
+            
         else: 
-            self._actuator.write(f"A:{channel}-{self.unit}{abs(position)}")
+            self._actuator.write(f"A:{channel}-U{abs(position)}")
         self._actuator.write("G:")
         self.wait_for_ready(channel)
-        # self.position[channel-1] = position
+        self.position[channel-1] = position
 
     def get_position(self, channel): 
         """Returns the position of the specified channel."""
         position = self._actuator.query(f"Q:")
+        while position[0] != "+" or position[0] != "-":
+            position = self._actuator.query(f"Q:")
+            
         position = int(position.split(",")[channel-1].replace(" ",""))
         return position
 
     def move_relative(self, position, channel): 
         if position >= 0: 
-            self._actuator.write(f"M:{channel}+{self.unit}{position}")
-            logger.info(f"Moving {channel} to {position}{self.unit}")
+            self._actuator.write(f"M:{channel}+U{position}")
+            logger.info(f"Moving {channel} to {position}")
         else:
-            self._actuator.write(f"M:{channel}-{self.unit}{abs({position})}")
-            logger.info(f"Moving {channel} to {position}{self.unit}")
+            self._actuator.write(f"M:{channel}-U{abs({position})}")
+            logger.info(f"Moving {channel} to {position}")
         self._actuator.write("G:") #check if this is correct
         self.wait_for_ready(channel)
         # self.position[channel-1] = position
