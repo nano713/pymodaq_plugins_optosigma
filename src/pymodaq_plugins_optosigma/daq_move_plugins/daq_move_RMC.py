@@ -25,8 +25,6 @@ class DAQ_Move_RMC(DAQ_Move_base):
         The particular object that allow the communication with the hardware, in general a python wrapper around the
          hardware library.
          
-    # TODO add your particular attributes here if any
-
     """
     is_multiaxes = True  # TODO for your plugin set to True if this plugin is controlled for a multiaxis controller
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y":2}  # TODO for your plugin: complete the list
