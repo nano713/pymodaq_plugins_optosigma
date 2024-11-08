@@ -1,7 +1,7 @@
 from typing import Union, List, Dict
 from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType,\
     DataActuator  # common set of parameters for all actuators
-from pymodaq.utils.daq_utils import ThreadCommand # object used to send info back to the main thread
+from pymodaq.utils.daq_utils import ThreadCommand 
 from pymodaq.utils.parameter import Parameter
 from pymodaq.hardware.rmc_VISADriver import RMCVISADriver
 
@@ -26,14 +26,11 @@ class DAQ_Move_RMC(DAQ_Move_base):
          hardware library.
          
     """
-    is_multiaxes = True  # TODO for your plugin set to True if this plugin is controlled for a multiaxis controller
-    _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y":2}  # TODO for your plugin: complete the list
-    _controller_units: Union[str, List[str]] = 'mm'  # TODO for your plugin: put the correct unit here, it could be
-    # TODO  a single str (the same one is applied to all axes) or a list of str (as much as the number of axes)
-    _epsilon: Union[float, List[float]] = 0.1  # TODO replace this by a value that is correct depending on your controller
-    # TODO it could be a single float of a list of float (as much as the number of axes)
-    data_actuator_type = DataActuatorType.DataActuator  # wether you use the new data style for actuator otherwise set this
-    # as  DataActuatorType.float  (or entirely remove the line)
+    is_multiaxes = True 
+    _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y":2}  
+    _controller_units: Union[str, List[str]] = 'mm'  
+    _epsilon: Union[float, List[float]] = 0.1  
+    data_actuator_type = DataActuatorType.DataActuator  
 
     params = [
         {"title": "Instrument Address", "name": "visa_name", "type": "str", "value": ""}, 
@@ -57,7 +54,7 @@ class DAQ_Move_RMC(DAQ_Move_base):
 
     def close(self):
         """Terminate the communication protocol"""
-        self.controller.close()  # when writing your own plugin replace this line
+        self.controller.close() 
 
     def commit_settings(self, param: Parameter):
         """Apply the consequences of a change of value in the detector settings
@@ -67,7 +64,7 @@ class DAQ_Move_RMC(DAQ_Move_base):
         param: Parameter
             A given parameter (within detector_settings) whose value has been changed by the user
         """
-        ## TODO for your custom plugin
+       
         if param.name() == 'speed':
             self.controller.set_speed(self.settings["speed"], self.axis_value)
         else:
@@ -87,9 +84,9 @@ class DAQ_Move_RMC(DAQ_Move_base):
         initialized: bool
             False if initialization failed otherwise True
         """
-        self.ini_stage_init(slave_controller=controller)  # will be useful when controller is slave
+        self.ini_stage_init(slave_controller=controller) 
 
-        if self.is_master:  # is needed when controller is master
+        if self.is_master:
             self.controller = RMCVISADriver(self.settings["visa_name"])
             self.controller.connect() 
 
@@ -109,7 +106,6 @@ class DAQ_Move_RMC(DAQ_Move_base):
         self.target_value = value
         value = self.set_position_with_scaling(value)  
      
-
         self.controller.move(value.value()) 
         self.emit_status(ThreadCommand('Update_Status', ['RMC Actuator moving to position {}'.format(value)])) #Change this or delete it
 
@@ -123,7 +119,6 @@ class DAQ_Move_RMC(DAQ_Move_base):
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
-
 
         self.controller.move_relative(value.value())
         self.emit_status(ThreadCommand('Update_Status', ['RMC Actuator moving to relative position {}'.format(value)]))  #Change this or delete it
