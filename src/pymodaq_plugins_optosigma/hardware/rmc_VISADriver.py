@@ -52,7 +52,7 @@ class RMCVISADriver:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
     
     def set_mode(self):
-        self._actuator.write("P:1") #Manual mode disabeled
+        self._actuator.write("P:1")
 
     def move(self, position, channel):
         """Move the actuator to the specified position on the given channel."""
