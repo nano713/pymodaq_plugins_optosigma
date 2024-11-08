@@ -3,7 +3,8 @@ from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_pa
     DataActuator  # common set of parameters for all actuators
 from pymodaq.utils.daq_utils import ThreadCommand 
 from pymodaq.utils.parameter import Parameter
-from pymodaq.hardware.rmc_VISADriver import RMCVISADriver
+from pymodaq_plugins_optosigma.hardware.rmc_VISADriver import RMCVISADriver
+from pymodaq.utils import logger
 
 
 class DAQ_Move_RMC(DAQ_Move_base):
@@ -28,13 +29,13 @@ class DAQ_Move_RMC(DAQ_Move_base):
     """
     is_multiaxes = True 
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y":2}  
-    _controller_units: Union[str, List[str]] = 'mm'  
-    _epsilon: Union[float, List[float]] = 0.1  
+    _controller_units: Union[str, List[str]] = RMCVISADriver.default_units
+    _epsilon: Union[float, List[float]] = 0.001
     data_actuator_type = DataActuatorType.DataActuator  
 
     params = [
-        {"title": "Instrument Address", "name": "visa_name", "type": "str", "value": ""}, 
-        {"title": "Speed", "name": "speed", "type": "float", "value": 1}
+        {"title": "Instrument Address", "name": "visa_name", "type": "str", "value": "ASRL7::INSTR"},
+        {"title": "Speed", "name": "speed", "type": "int", "value": 8}
                 ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
@@ -70,6 +71,14 @@ class DAQ_Move_RMC(DAQ_Move_base):
         else:
             pass
 
+    def set_initial_conditions(self):
+        speed = 8
+        channels = [1, 2]
+        for channel in channels:
+            self.controller.set_speed(speed, channel)
+            self.controller.home(channel)
+        logger.info(f"Speed has been set to {speed} at channels {channels}")
+
     def ini_stage(self, controller=None):
         """Actuator communication initialization
 
@@ -84,14 +93,14 @@ class DAQ_Move_RMC(DAQ_Move_base):
         initialized: bool
             False if initialization failed otherwise True
         """
-        self.ini_stage_init(slave_controller=controller) 
+        self.ini_stage_init(slave_controller=controller)
 
         if self.is_master:
             self.controller = RMCVISADriver(self.settings["visa_name"])
-            self.controller.connect() 
+            self.controller.connect()
 
         info = "RMC Actuator initialized"
-        initialized = self.controller.a_method_or_atttribute_to_check_if_init()  # todo
+        initialized = True
         return info, initialized
 
     def move_abs(self, value: DataActuator):
@@ -105,8 +114,8 @@ class DAQ_Move_RMC(DAQ_Move_base):
         value = self.check_bound(value)
         self.target_value = value
         value = self.set_position_with_scaling(value)  
-     
-        self.controller.move(value.value()) 
+
+        self.controller.move(int(value.value()), self.axis_value)
         self.emit_status(ThreadCommand('Update_Status', ['RMC Actuator moving to position {}'.format(value)])) #Change this or delete it
 
     def move_rel(self, value: DataActuator):
@@ -120,19 +129,19 @@ class DAQ_Move_RMC(DAQ_Move_base):
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
 
-        self.controller.move_relative(value.value())
+        self.controller.move_relative(int(value.value()), self.axis_value)
         self.emit_status(ThreadCommand('Update_Status', ['RMC Actuator moving to relative position {}'.format(value)]))  #Change this or delete it
 
     def move_home(self):
         """Call the reference method of the controller"""
 
-        self.controller.home() 
+        self.controller.home(self.axis_value)
         self.emit_status(ThreadCommand('Update_Status', ['RMC Actuator moving to home position']))  #Change this or delete it
 
     def stop_motion(self):
       """Stop the actuator and emits move_done signal"""
 
-      self.controller.stop() 
+      self.controller.stop(self.axis_value)
       self.emit_status(ThreadCommand('Update_Status', ['RCM Actuator stopped']))  #Change this or delete it
 
 

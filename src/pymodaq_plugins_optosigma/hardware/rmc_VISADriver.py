@@ -15,7 +15,7 @@ class AxisError(Exception):
 class RMCVISADriver:
     """Class to communicate with the RMC Actuator"""
 
-    default_units = "mm"
+    default_units = "um"
 
     def __init__(self, rsrc_name):
         self._actuator = None
@@ -68,28 +68,30 @@ class RMCVISADriver:
 
     def get_position(self, channel): 
         """Returns the position of the specified channel."""
-        position = self._actuator.query(f"Q:")
-        while position[0] != "+" or position[0] != "-":
-            position = self._actuator.query(f"Q:")
-            
-        position = int(position.split(",")[channel-1].replace(" ",""))
-        return position
+        # position = self._actuator.query(f"Q:")
+        # while position[0] != "+" or position[0] != "-":
+        #     position = self._actuator.query(f"Q:")
+        #
+        # position = int(position.split(",")[channel-1].replace(" ",""))
+
+        return self.position[channel-1]
 
     def move_relative(self, position, channel): 
         if position >= 0: 
             self._actuator.write(f"M:{channel}+U{position}")
             logger.info(f"Moving {channel} to {position}")
         else:
-            self._actuator.write(f"M:{channel}-U{abs({position})}")
+            self._actuator.write(f"M:{channel}-U{abs(position)}")
             logger.info(f"Moving {channel} to {position}")
         self._actuator.write("G:") #check if this is correct
         self.wait_for_ready(channel)
-        # self.position[channel-1] = position
+        self.position[channel-1] = position+ self.position[channel-1]
          
     def home(self, channel):
         self._actuator.write(f"H:{channel}")
         logger.info(f"Homing {channel}")
         self.wait_for_ready(channel)
+        self.position[channel-1] = 0
     
     def wait_for_ready(self, channel):
         time0 = time.time()
