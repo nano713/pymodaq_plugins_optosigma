@@ -59,7 +59,16 @@ class RMCVISADriver:
         self._actuator.write("P:1")  # Manual mode disabeled
 
     def move(self, position, channel):
-        """Move the actuator to the specified position on the given channel."""
+        """Move the actuator to the specified position on the given channel.
+        Parameters
+        ----------
+        position: int
+            The position to move to.
+        channel: int
+            The channel to move.
+
+        """
+        self.wait_for_ready(channel)
         if position >= 0:
             self._actuator.write(f"A:{channel}+U{position}")
 
@@ -80,6 +89,7 @@ class RMCVISADriver:
         return self.position[channel - 1]
 
     def move_relative(self, position, channel):
+        self.wait_for_ready(channel)
         if position >= 0:
             self._actuator.write(f"M:{channel}+U{position}")
             logger.info(f"Moving {channel} to {position}")
@@ -91,6 +101,7 @@ class RMCVISADriver:
         self.position[channel - 1] = position + self.position[channel - 1]
 
     def home(self, channel):
+        self.wait_for_ready(channel)
         self._actuator.write(f"H:{channel}")
         logger.info(f"Homing {channel}")
         self.wait_for_ready(channel)
