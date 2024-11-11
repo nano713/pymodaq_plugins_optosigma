@@ -99,6 +99,7 @@ class DAQ_Move_RMC(DAQ_Move_base):
             self.controller = RMCVISADriver(self.settings["visa_name"])
             self.controller.connect()
 
+        # self.set_initial_conditions()
         info = "RMC Actuator initialized"
         initialized = True
         return info, initialized
