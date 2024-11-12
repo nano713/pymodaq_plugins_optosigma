@@ -13,9 +13,9 @@ class SBIS26VISADriver:
         self._stage = None
         self.rsrc_name = rsrc_name
         # self.unit = None # DK - delete. SBIS26 only has pulse unit
-        self.speed_ini = [-1, -1, -1]
-        self.speed_fin = [-1, -1, -1]
-        self.accel_t = [-1, -1, -1]
+        self.speed_ini = [10000, 10000, 10000]
+        self.speed_fin = [10000, 10000, 10000]
+        self.accel_t = [100, 100, 100]
         self.position = [0, 0, 0]
 
     def connect(self):
@@ -129,12 +129,13 @@ class SBIS26VISADriver:
             accel_t (int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
-        self.speed_ini = speed_ini
-        self.speed_fin = speed_fin
-        self.accel_t = accel_t
+        self.speed_ini[channel - 1] = speed_ini
+        self.speed_fin[channel - 1] = speed_fin
+        self.accel_t[channel - 1] = accel_t
         if 0 < speed_ini <= speed_fin and accel_t > 0:
             self._stage.write(f"D:D,{channel},{speed_ini},{speed_fin},{accel_t}")
-            logger.info(f"Set Speed of axis {channel}: speed initial {speed_ini}, speed final {speed_fin}, acceleration time {accel_t}")
+            logger.info(
+                f"Set Speed of axis {channel}: speed initial {speed_ini}, speed final {speed_fin}, acceleration time {accel_t}")
         else:
             logger.warning("Invalid parameters")
 
