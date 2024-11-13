@@ -18,13 +18,13 @@ class AxisError(Exception):
 
 
 class GSC:
-    default_units = 'um'
+    default_units = ''
 
     def __init__(self, rsrc_name):
         self._actuator = None
         self.rsrc_name = rsrc_name
-        self.position = [0, 0]  # DK - there are at most two axes
-        self.speed = [1000, 1000]  # DK - there are at most two axes
+        self.position = [0, 0] 
+        self.speed = [0, 0] 
 
     def connect(self):
         rm = pyvisa.ResourceManager()
@@ -69,6 +69,8 @@ class GSC:
     def home(self, channel):
         """Move the specified channel to the home position."""
         self._actuator.write(f"H:{channel}")
+        self.wait_for_ready(channel)
+        self.position[channel - 1] = 0
         logger.info(f"Homing {channel}")
 
     def set_speed(self, speed_min, speed_fin, accel_t, channel):
@@ -92,18 +94,17 @@ class GSC:
             logger.error(f"Error: {error}")
             AxisError(error)
 
-    def read_state(self, channel):
+    def read_state(self):
         """Read the state of the specified channel."""
-        state = self._actuator.query(f"!:{channel}")  # DK - check if this command is correct
+        state = self._actuator.query(f"!:") 
         return state
 
-    def wait_for_ready(self, channel):
+    def wait_for_ready(self):
         time0 = time.time()
-        while self.read_state(channel) != "R":
-            # logger.info("State: " + self.read_state(channel))
+        while self.read_state() != "R":
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.warning("Timeout")
-                self.check_error(channel)
+                self.check_error()
                 break
             time.sleep(0.2)
