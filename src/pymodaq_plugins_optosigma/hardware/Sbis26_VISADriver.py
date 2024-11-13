@@ -1,4 +1,3 @@
-
 import time
 import pyvisa
 from pymodaq.utils.logger import set_logger, get_module_name
@@ -13,11 +12,11 @@ class SBIS26VISADriver:
 
         self._stage = None
         self.rsrc_name = rsrc_name
-        self.unit = None # DK - delete. SBIS26 only has pulse unit
-        self.speed_ini = {"X": None, "Y": None, "Z": None}
-        self.speed_fin = {"X": None, "Y": None, "Z": None}
-        self.accel_t = {"X": None, "Y": None, "Z": None}
-        self.position = {"X": None, "Y": None, "Z": None}
+        # self.unit = None # DK - delete. SBIS26 only has pulse unit
+        self.speed_ini = [10000, 10000, 10000]
+        self.speed_fin = [10000, 10000, 10000]
+        self.accel_t = [100, 100, 100]
+        self.position = [0, 0, 0]
 
     def connect(self):
         """Initializes the stage."""
@@ -58,20 +57,35 @@ class SBIS26VISADriver:
             channel (int): Channel of the stage.
         Returns (str): Status of the stage.
         """
-        self._stage.query(f"SRQ:D,{channel}") # DK - add while loop if possible
+
+        # if key is either B or R, return status_str[key], if not run status_str = _stage.query(f"SRQ:D,{channel}"),  again within a while loop, elif timeout
+
+        self._stage.query(f"SRQ:D,{channel}")  # DK - add while loop if possible
         status_str = self._stage.query(f"SRQ:D,{channel}")
+
+        # time0 = time.time()
+        # while True:
+        #     if status_str == "B" or status_str == "R":
+        #         return status_str[key]
+        #     elif:
+        #         time.time() < time
+        #         break
+        #     else:
+        #         status_str = self._stage.query(f"SRQ:D,{channel}")
         key = status_str.split(",")[-1]
-        return status_str[key]
-    def set_unit(self, unit : str):
-        """
-        Set the unit of the controller.
-        "N" nanometer designation
-        "U" micrometer designation
-        "M" mm designation
-        "D" degree designation
-        "P" Designation without unit (pulse
-        """
-        self.unit = unit
+        return key
+
+        # def set_unit(self, unit : str):
+
+    #     """
+    #     Set the unit of the controller.
+    #     "N" nanometer designation
+    #     "U" micrometer designation
+    #     "M" mm designation
+    #     "D" degree designation
+    #     "P" Designation without unit (pulse
+    #     """
+    #     self.unit = unit
 
     def get_position(self, channel):
         """Gets the position of the stage.
@@ -79,7 +93,8 @@ class SBIS26VISADriver:
             channel (int): Channel of the stage.
         Returns (float): Position of the stage.
         """
-        return self.position[channel]
+        logger.info(f"position = {self.position[channel - 1]} in get_position of hardware")
+        return self.position[channel - 1]
 
     def move(self, position, channel):
         """Moves the stage to the specified position.
@@ -92,7 +107,8 @@ class SBIS26VISADriver:
             self._stage.write(f"A:D,{channel},+{position}")
         else:
             self._stage.write(f"A:D,{channel},{position}")
-        self.wait_for_ready()
+        self.wait_for_ready(channel)
+        self.position[channel - 1] = position
 
     def move_relative(self, position, channel):
         """Moves the stage to the specified relative position.
@@ -102,9 +118,10 @@ class SBIS26VISADriver:
         """
 
         self._stage.write(f"M:D,{channel},{position}")
-        self.wait_for_ready()
+        self.wait_for_ready(channel)
+        self.position[channel - 1] = self.position[channel - 1] + position
 
-    def set_speed(self, speed_ini, speed_fin, accel_t):
+    def set_speed(self, speed_ini, speed_fin, accel_t, channel):
         """Sets the speed of the stage.
         Args:
             speed_ini (int): Initial speed of the stage.
@@ -112,17 +129,19 @@ class SBIS26VISADriver:
             accel_t (int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
-        self.speed_ini = speed_ini
-        self.speed_fin = speed_fin
-        self.accel_t = accel_t
-        if 0 < speed_ini < speed_fin and accel_t > 0:
-            self._stage.write(f"D:A,{speed_ini},{speed_fin},{accel_t}")
+        self.speed_ini[channel - 1] = speed_ini
+        self.speed_fin[channel - 1] = speed_fin
+        self.accel_t[channel - 1] = accel_t
+        if 0 < speed_ini <= speed_fin and accel_t > 0:
+            self._stage.write(f"D:D,{channel},{speed_ini},{speed_fin},{accel_t}")
+            logger.info(
+                f"Set Speed of axis {channel}: speed initial {speed_ini}, speed final {speed_fin}, acceleration time {accel_t}")
         else:
             logger.warning("Invalid parameters")
 
     def get_speed(self, channel):
         """Gets the speed of the stage."""
-        return self.speed_ini[channel], self.speed_fin[channel], self.accel_t[channel]
+        return self.speed_ini[channel - 1], self.speed_fin[channel - 1], self.accel_t[channel - 1]
 
     def stop(self):
         """Stops the stage."""
@@ -134,7 +153,7 @@ class SBIS26VISADriver:
 
         time0 = time.time()
         while self.status(channel) != "R":
-            print(self.status()) # DK - logger.debut(self.status())
+            print(self.status(channel))  # DK - logger.debug(self.status(channel))
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.warning("Timeout")
@@ -144,8 +163,10 @@ class SBIS26VISADriver:
     def home(self, channel):
         """ Sends the stage to the home position."""
         self._stage.write(f"H:D,{channel}")
-        self.wait_for_ready()
+        self.wait_for_ready(channel)
+        self.position[channel - 1] = 0
 
     def close(self):
         """Closes the stage."""
-        self._stage.close()
+        # self._stage.close()
+        self.rm.close()
