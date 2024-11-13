@@ -13,15 +13,15 @@ class AxisError(Exception):
     }
     def __init__(self, error_code):
         self.message = self.MESSAGES[error_code]
-class GRC:
+class GSC:
 
     default_units = 'um'
 
     def __init__(self, rsrc_name):
         self._actuator = None
         self.rsrc_name = rsrc_name
-        self.position = [None, None, None]
-        self.speed = [None, None, None]
+        self.position = [0, 0] # DK - there are at most two axes
+        self.speed = [1000, 1000] # DK - there are at most two axes
 
     
     def connect(self): 
@@ -42,6 +42,7 @@ class GRC:
             self._actuator.write(f"A:{channel}-P{abs(position)}")
             logger.info(f"Moving {channel} to {position}")
         self._actuator.write("G:")
+        self.wait_for_ready(channel)
         self.position[channel-1] = position
     
     def move_rel(self, position, channel):
@@ -93,13 +94,13 @@ class GRC:
 
     def read_state(self, channel): 
         """Read the state of the specified channel."""
-        state = self._actuator.write(f"!:{channel}")
+        state = self._actuator.query(f"!:{channel}") # DK - check if this command is correct
         return state
 
     def wait_for_ready(self, channel):
         time0 = time.time()
         while self.read_state(channel) != "R":
-            logger.info("State: " + self.read_state(channel))
+            # logger.info("State: " + self.read_state(channel))
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.warning("Timeout")
