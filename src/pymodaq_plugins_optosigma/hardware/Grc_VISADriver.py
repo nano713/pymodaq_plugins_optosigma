@@ -91,9 +91,9 @@ class GRC:
             logger.error(f"Error: {error}")
             AxisError(error)
 
-    def read_state(self, channel): 
+    def read_state(self): 
         """Read the state of the specified channel."""
-        state = self._actuator.write(f"!:{channel}")
+        state = self._actuator.write(f"!:")
         return state
 
     def wait_for_ready(self, channel):
