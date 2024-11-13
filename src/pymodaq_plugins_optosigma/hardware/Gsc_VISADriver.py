@@ -93,7 +93,7 @@ class GRC:
 
     def read_state(self): 
         """Read the state of the specified channel."""
-        state = self._actuator.write(f"!:")
+        state = self._actuator.write(f"!:") #Fix this
         return state
 
     def wait_for_ready(self, channel):
