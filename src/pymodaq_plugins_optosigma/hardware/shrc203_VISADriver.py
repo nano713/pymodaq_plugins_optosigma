@@ -4,7 +4,9 @@ import pyvisa
 from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
-#delete all logger.info
+
+
+# delete all logger.info
 
 # DK - reuse this class that we wrote in pymeasure instruments. See an example: https://github.com/nano713/pymeasure/blob/dev/sbis26/pymeasure/instruments/newport/esp300.py
 class AxisError(Exception):
@@ -47,6 +49,7 @@ class AxisError(Exception):
     def __str__(self):
         return f"OptoSigma SHRC-203 Error: {self.message}"
 
+
 class SHRC203VISADriver:
     """
     Class to handle the communication with the Optosigma SHRC203 controller using the VISA protocol.
@@ -58,19 +61,37 @@ class SHRC203VISADriver:
         Initialize the communication with the controller.
         """
         self._instr = None
+        self._rm = None
         self.rsrc_name = rsrc_name
-        self.unit = "" # DK - initialize unit
+        self.unit = ""  # DK - initialize unit
         # self.channel = {"X": 1, "Y": 2, "Z": 3}
         # self.channel = [1, 2, 3]
-        self.loop = [None, None, None]# {"X": None, "Y": None, "Z": None
-        self.position = [None, None, None]
-        self.speed_ini = [None, None, None]
-        self.speed_fin = [None, None, None]
-        self.accel_t = [None, None, None]
+        self.loop = [0, 0, 0]  # {"X": None, "Y": None, "Z": None
+        self.position = [0, 0, 0]
+        self.speed_ini = [0, 0, 0]
+        self.speed_fin = [0, 0, 0]
+        self.accel_t = [0, 0, 0]
         # self.position = {"X":None, "Y": None,"Z" :None}
         # self.speed_ini = {"X": None, "Y": None, "Z": None}
         # self.speed_fin = {"X": None, "Y": None, "Z": None}
         # self.accel_t = {"X": None, "Y": None, "Z": None}
+
+    def open_connection(self):
+
+        """
+        Open the connection with the controller.
+        """
+        try:
+            self._rm = pyvisa.ResourceManager()
+            self._instr = self._rm.open_resource(self.rsrc_name)
+            self._instr.baud_rate = 9600
+            self._instr.data_bits = 8
+            self._instr.parity = pyvisa.constants.Parity.none
+            self._instr.write_termination = "\r\n"
+            self._instr.read_termination = "\r\n"
+            logger.info(f"Connection to {self._instr} successful")
+        except Exception as e:
+            logger.error(f"Error connecting to {self.rsrc_name}: {e}")
 
     def set_unit(self, unit: str):
         """
@@ -97,36 +118,19 @@ class SHRC203VISADriver:
 
         # Check if error is either "1", "3", "7", or "F"
         while error[0] not in ["1", "3", "7", "F"]:
-             error = self._instr.query(f"SRQ:{channel}S")
-             if time0 - time.time() >= 10:
+            error = self._instr.query(f"SRQ:{channel}S")
+            if time0 - time.time() >= 10:
                 logger.warning("Timeout")
                 break
 
         error = error.split(",")[0]
 
         return AxisError.MESSAGES[error]
-    
-    def open_connection(self): 
-                                
-        """
-        Open the connection with the controller.
-        """
-        try:
-            rm = pyvisa.ResourceManager()
-            self._instr = rm.open_resource(self.rsrc_name)
-            self._instr.baud_rate = 9600
-            self._instr.data_bits = 8 
-            self._instr.parity = pyvisa.constants.Parity.none 
-            self._instr.write_termination = "\r\n" 
-            self._instr.read_termination = "\r\n" 
-            logger.info(f"Connection to {self._instr} successful")
-        except Exception as e:
-            logger.error(f"Error connecting to {self.rsrc_name}: {e}")
-    
+
     def set_mode(self):
         self._instr.write("MODE:HOST")
 
-    def set_loop(self, loop : dict, channel : int):
+    def set_loop(self, loop: dict, channel: int):
         """
         Open the loop of the specified channel.
         1: Open loop
@@ -134,33 +138,32 @@ class SHRC203VISADriver:
         """
         self._instr.write(f"F:{channel}{loop}")
         # if self.check_error(channel) == "OK":
-        self.loop[channel-1] = loop
+        self.loop[channel - 1] = loop
 
     def get_loop(self, channel):
         """
         Get the loop status of the specified channel."""
-        return self.loop[channel-1] 
+        return self.loop[channel - 1]
 
-    def move(self, position, channel): 
+    def move(self, position, channel):
         """
         Move the specified channel to the position.
         """
         if position >= 0:
-            self._instr.write(f"A:{channel}+{self.unit}{position}") # DK - need "+" somewhere in the command? Check with the manual
+            self._instr.write(
+                f"A:{channel}+{self.unit}{position}")  # DK - need "+" somewhere in the command? Check with the manual
             logger.info(f"Moving {channel} to {position}")
         else:
             self._instr.write(f"A:{channel}-{self.unit}{abs(position)}")
             logger.info(f"Moving {channel} to {position}")
         self._instr.write("G:")
         self.wait_for_ready(channel)
-        self.position[channel-1] = position
-
+        self.position[channel - 1] = position
 
     def get_position(self, channel):
-        return self.position[channel-1]
+        return self.position[channel - 1]
 
-
-    def set_speed(self, speed_ini, speed_fin, accel_t, channel): 
+    def set_speed(self, speed_ini, speed_fin, accel_t, channel):
         """Sets the speed of the stage.
         Args:
             speed_inital (int): Initial speed of the stage.
@@ -168,8 +171,11 @@ class SHRC203VISADriver:
             accel_t(int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
+        self.speed_ini[channel - 1] = speed_ini
+        self.speed_fin[channel - 1] = speed_fin
+        self.accel_t[channel - 1] = accel_t
 
-        if 0 < speed_ini <= speed_fin and accel_t> 0:
+        if 0 < speed_ini <= speed_fin and accel_t > 0:
             self._instr.write(f"D:{channel},{speed_ini},{speed_fin},{accel_t}")
         else:
             Exception("Invalid parameters")
@@ -185,13 +191,12 @@ class SHRC203VISADriver:
             speed = self._instr.query(f"?:D{channel}")
             if time0 - time.time() >= 5:
                 logger.warning("Timeout")
-                return self.speed_ini[channel-1], self.speed_fin[channel-1], self.accel_t[channel-1]
-                
+                return self.speed_ini[channel - 1], self.speed_fin[channel - 1], self.accel_t[channel - 1]
 
-        self.speed_ini[channel-1] = speed.split("S")[1].split("F")[0]
-        self.speed_fin[channel-1] = speed.split("F")[1].split("R")[0]
-        self.accel_t[channel-1]= speed.split("R")[1]
-        return self.speed_ini[channel-1], self.speed_fin[channel-1], self.accel_t[channel-1]
+        self.speed_ini[channel - 1] = speed.split("S")[1].split("F")[0]
+        self.speed_fin[channel - 1] = speed.split("F")[1].split("R")[0]
+        self.accel_t[channel - 1] = speed.split("R")[1]
+        return self.speed_ini[channel - 1], self.speed_fin[channel - 1], self.accel_t[channel - 1]
 
     def move_relative(self, position, channel):
         """Move the stage to a relative position."""
@@ -199,28 +204,29 @@ class SHRC203VISADriver:
             self._instr.write(
                 f"M:{channel}" + f"+{self.unit}{position}"
             )
-            logger.info(f"Moving {channel} to {position}")  
+            logger.info(f"Moving {channel} to {position}")
         else:
             self._instr.write(
                 f"M:{channel}" + f"-{self.unit}{abs(position)}"
-            )  
+            )
             logger.info(f"Moving {channel} to {position}")
         self._instr.write("G:")
         self.wait_for_ready(channel)
+        self.position[channel - 1] += position
 
     def home(self, channel):
         """Move the stage to the home position."""
         self._instr.write(f"H:{channel}")
         self.wait_for_ready(channel)
+        self.position[channel - 1] = 0
 
-    
     def wait_for_ready(self, channel):
         """Wait for the stage to stop moving."""
         time0 = time.time()
         while self.read_state(channel) != "R":
-            print(self.read_state(channel)) # DK - make sure you delete print() at the end
+            print(self.read_state(channel))  # DK - make sure you delete print() at the end
             time1 = time.time() - time0
-            if time1 >= 60: # seconds
+            if time1 >= 60:  # seconds
                 logger.warning("Timeout")
                 self.check_error(channel)
                 break
@@ -235,9 +241,9 @@ class SHRC203VISADriver:
         """Read the state if the stage is moving or not.
         B: Busy
         R: Ready"""
-        state = self._instr.query(f"!:{channel}S") # DK - add while loop if possible.
+        state = self._instr.query(f"!:{channel}S")  # DK - add while loop if possible.
         return state
 
     def close(self):
         """Close the connection with the controller."""
-        pass
+        self._rm.close()
