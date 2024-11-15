@@ -149,6 +149,10 @@ class SHRC203VISADriver:
         """
         Move the specified channel to the position.
         """
+
+        if self.unit == "P":
+            position = int(position)
+
         if position >= 0:
             self._instr.write(
                 f"A:{channel}+{self.unit}{position}")  # DK - need "+" somewhere in the command? Check with the manual
@@ -159,6 +163,25 @@ class SHRC203VISADriver:
         self._instr.write("G:")
         self.wait_for_ready(channel)
         self.position[channel - 1] = position
+
+    def move_relative(self, position, channel):
+        """Move the stage to a relative position."""
+        if self.unit == "P":
+            position = int(position)
+
+        if position >= 0:
+            self._instr.write(
+                f"M:{channel}" + f"+{self.unit}{position}"
+            )
+            logger.info(f"Moving {channel} to {position}")
+        else:
+            self._instr.write(
+                f"M:{channel}" + f"-{self.unit}{abs(position)}"
+            )
+            logger.info(f"Moving {channel} to {position}")
+        self._instr.write("G:")
+        self.wait_for_ready(channel)
+        self.position[channel - 1] += position
 
     def get_position(self, channel):
         return self.position[channel - 1]
@@ -197,22 +220,6 @@ class SHRC203VISADriver:
         self.speed_fin[channel - 1] = speed.split("F")[1].split("R")[0]
         self.accel_t[channel - 1] = speed.split("R")[1]
         return self.speed_ini[channel - 1], self.speed_fin[channel - 1], self.accel_t[channel - 1]
-
-    def move_relative(self, position, channel):
-        """Move the stage to a relative position."""
-        if position >= 0:
-            self._instr.write(
-                f"M:{channel}" + f"+{self.unit}{position}"
-            )
-            logger.info(f"Moving {channel} to {position}")
-        else:
-            self._instr.write(
-                f"M:{channel}" + f"-{self.unit}{abs(position)}"
-            )
-            logger.info(f"Moving {channel} to {position}")
-        self._instr.write("G:")
-        self.wait_for_ready(channel)
-        self.position[channel - 1] += position
 
     def home(self, channel):
         """Move the stage to the home position."""
