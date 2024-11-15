@@ -6,17 +6,6 @@ from pymodaq.utils.daq_utils import ThreadCommand # object used to send info bac
 from pymodaq.utils.parameter import Parameter
 from pymodaq_plugins_optosigma.hardware.gsc_VISADriver import Gsc_VISADriver as GSC
 
-
-class PythonWrapperOfYourInstrument:
-    #  TODO Replace this fake class with the import of the real python wrapper of your instrument
-    pass
-
-# TODO:
-# (1) change the name of the following class to DAQ_Move_TheNameOfYourChoice
-# (2) change the name of this file to daq_move_TheNameOfYourChoice ("TheNameOfYourChoice" should be the SAME
-#     for the class name and the file name.)
-# (3) this file should then be put into the right folder, namely IN THE FOLDER OF THE PLUGIN YOU ARE DEVELOPING:
-#     pymodaq_plugins_my_plugin/daq_move_plugins
 class DAQ_Move_GSC(DAQ_Move_base):
     """ Instrument plugin class for an actuator.
     
@@ -39,14 +28,11 @@ class DAQ_Move_GSC(DAQ_Move_base):
     # TODO add your particular attributes here if any
 
     """
-    is_multiaxes = True # TODO for your plugin set to True if this plugin is controlled for a multiaxis controller
-    _axis_names: Union[List[str], Dict[str, int]] = {'X-Axis', "Y-Axis"}  # TODO for your plugin: complete the list
-    _controller_units: Union[str, List[str]] = GSC.default_units  # TODO for your plugin: put the correct unit here, it could be
-    # TODO  a single str (the same one is applied to all axes) or a list of str (as much as the number of axes)
-    _epsilon: Union[float, List[float]] = 0.1  # TODO replace this by a value that is correct depending on your controller
-    # TODO it could be a single float of a list of float (as much as the number of axes)
-    data_actuator_type = DataActuatorType.DataActuator  # wether you use the new data style for actuator otherwise set this
-    # as  DataActuatorType.float  (or entirely remove the line)
+    is_multiaxes = True 
+    _axis_names: Union[List[str], Dict[str, int]] = {'X-Axis', "Y-Axis"}  
+    _controller_units: Union[str, List[str]] = GSC.default_units  
+    _epsilon: Union[float, List[float]] = 0.1 
+    data_actuator_type = DataActuatorType.DataActuator  
 
     params = [
         {"title": "Instrument Address", "name": "visa_name", "type": "str", "value": ""}, 
