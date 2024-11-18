@@ -3,7 +3,7 @@ import logging
 from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType, DataActuator 
 from pymodaq.utils.daq_utils import ThreadCommand 
 from pymodaq.utils.parameter import Parameter
-from pymodaq_plugins_optosigma.hardware.Sbis26_VISADriver import SBIS26VISADriver
+from pymodaq_plugins_optosigma.hardware.sbis26_VISADriver import SBIS26VISADriver
 logger = logging.getLogger(__name__)
 
 class DAQ_Move_SBIS26(DAQ_Move_base):
