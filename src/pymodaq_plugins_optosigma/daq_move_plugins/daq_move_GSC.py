@@ -12,6 +12,11 @@ class DAQ_Move_GSC(DAQ_Move_base):
     This object inherits all functionalities to communicate with PyMoDAQ’s DAQ_Move module through inheritance via
     DAQ_Move_base. It makes a bridge between the DAQ_Move module and the Python wrapper of a particular instrument.
 
+    Attributes:
+    -----------
+    controller: object
+        The particular object that allow the communication with the hardware, in general a python wrapper around the
+         hardware library.
 
     """
     is_multiaxes = True 
