@@ -37,10 +37,10 @@ Below is the list of instruments included in this plugin
 Actuators
 +++++++++
 
-* **GSC-02C**: control of xx and yy actuators
-* **RMC-102**: control of xx,yy,zz actuators
-* **SHRC293**: control of xx,yy,zz actuators
-* **SBIS26**: control of xx,yy,zz actuators
+* **GSC-02C**: controller of GSC 2 Axis Stage Controller
+* **RMC-102**: controller of RMC-102 Remote Micrometer Controller
+* **SHRC203**: controller of SHRC203 3 Axis Stage Controller   
+* **SBIS26**: controller of SBIS26 Driver Integrated Motorized Stage
 
 
 Installation instructions
