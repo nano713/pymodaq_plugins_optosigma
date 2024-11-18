@@ -24,7 +24,7 @@ class GSC:
         self._actuator = None
         self.rsrc_name = rsrc_name
         self.position = [0, 0] 
-        self.speed_min = [0, 0] 
+        self.speed_ini = [0, 0]
         self.speed_fin = [0, 0]
         self.accel_t = [0, 0]
 
@@ -40,24 +40,24 @@ class GSC:
         """Move the specified channel to the position."""
         if position >= 0:
             self._actuator.write(f"A:{channel}+P{position}")
-            logger.info(f"Moving {channel} to {position}")
+            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         else:
             self._actuator.write(f"A:{channel}-P{abs(position)}")
-            logger.info(f"Moving {channel} to {position}")
+            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         self._actuator.write("G:")
-        self.wait_for_ready(channel)
+        self.wait_for_ready() # DK - wait_for_ready has no attributes
         self.position[channel - 1] = position
 
     def move_rel(self, position, channel):
         """Move the specified channel to the relative position."""
         if position >= 0:
             self._actuator.write(f"M:{channel}+P{position}")
-            logger.info(f"Moving {channel} to {position}")
+            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         else:
             self._actuator.write(f"M:{channel}-P{abs(position)}")
-            logger.info(f"Moving {channel} to {position}")
+            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         self._actuator.write("G:")
-        self.wait_for_ready(channel)
+        self.wait_for_ready()
         self.position[channel - 1] = position + self.position[channel - 1]
 
     def stop(self, channel):
@@ -71,15 +71,15 @@ class GSC:
     def home(self, channel):
         """Move the specified channel to the home position."""
         self._actuator.write(f"H:{channel}")
-        self.wait_for_ready(channel)
+        self.wait_for_ready()
         self.position[channel - 1] = 0
-        logger.info(f"Homing {channel}")
+        logger.info(f"Homing {channel}") # DK - comment out. duplicates with daq_move.
 
-    def set_speed(self, speed_min, speed_fin, accel_t, channel):
+    def set_speed(self, speed_ini, speed_fin, accel_t, channel):
         """Set the speed of the specified channel"""
-        if speed_min >= 0 and speed_fin >= 0 and accel_t >= 0:
-            self._actuator.write(f"D:{channel}S{speed_min}F{speed_fin}R{accel_t}")
-            self.speed_min[channel - 1] = speed_min
+        if speed_ini >= 0 and speed_fin >= 0 and accel_t >= 0:
+            self._actuator.write(f"D:{channel}S{speed_ini}F{speed_fin}R{accel_t}")
+            self.speed_ini[channel - 1] = speed_ini
             self.speed_fin[channel - 1] = speed_fin
             self.accel_t[channel - 1] = accel_t
 
