@@ -4,8 +4,7 @@
 SHORT_PLUGIN_NAME = 'optosigma'  #to be modified, for instance daqmx then rename the module name:
 # (pymodaq_plugins_optosigma become pymodaq_plugins_daqmx for instance)
 
-package-url = 'https://github.com/nano713/pymodaq_plugins_optosigma' #to modify
-description = 'some word about your plugin'
+package-url = 'https://github.com/NanoQM/pymodaq_plugins_optosigma' 
 
 author = 'Author Name'
 author-email = 'Author email'
@@ -13,9 +12,9 @@ license = 'MIT'
 
 [plugin-install]
 #packages required for your plugin:
-packages-required = ['pymodaq>=4.3.0']
+packages-required = ['pymodaq>=4.3.0', 'pyvisa']
 
-[features]  # defines the plugin features contained into this plugin
+[features]  
 instruments = true  # true if plugin contains instrument classes (else false, notice the lowercase for toml files)
 extensions = false  # true if plugins contains dashboard extensions
 models = false  # true if plugins contains pid models or other models (optimisation...)
