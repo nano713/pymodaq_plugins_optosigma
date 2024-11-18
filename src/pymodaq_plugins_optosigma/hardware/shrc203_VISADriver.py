@@ -183,12 +183,12 @@ class SHRC203VISADriver:
             self._instr.write(
                 f"M:{channel}" + f"+{self.unit}{position}"
             )
-            logger.info(f"Moving {channel} to {position}")  
+            logger.warning(f"Moving {channel} to {position}") 
         else:
             self._instr.write(
                 f"M:{channel}" + f"-{self.unit}{abs(position)}"
             )  
-            logger.info(f"Moving {channel} to {position}")
+            logger.warning(f"Moving {channel} to {position}")
         self._instr.write("G:")
         self.wait_for_ready(channel)
 
@@ -202,7 +202,6 @@ class SHRC203VISADriver:
         """Wait for the stage to stop moving."""
         time0 = time.time()
         while self.read_state(channel) != "R":
-            print(self.read_state(channel))
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.warning("Timeout")
