@@ -9,7 +9,6 @@ class SBIS26VISADriver:
     """VISA class driver for the OptoSigma stage SBIS26."""
 
     def __init__(self, rsrc_name):
-
         self._stage = None
         self.rsrc_name = rsrc_name
         self.speed_ini = [-1, -1, -1]
@@ -20,7 +19,6 @@ class SBIS26VISADriver:
     def connect(self):
         """Initializes the stage."""
         rm = pyvisa.ResourceManager()
-
         self._stage = rm.open_resource(self.rsrc_name)
         self._stage.baud_rate = 38400
         self._stage.write_termination = '\r\n'
