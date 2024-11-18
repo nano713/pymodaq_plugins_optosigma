@@ -1,4 +1,4 @@
-pymodaq_plugins_template
+pymodaq_plugins_optosigma
 ########################
 
 .. the following must be adapted to your developed package, links to pypi, github  description...
@@ -25,20 +25,8 @@ Use this template to create a repository on your account and start the developme
 Authors
 =======
 
-* First Author  (myemail@xxx.org)
-* Other author (myotheremail@xxx.org)
-
-.. if needed use this field
-
-    Contributors
-    ============
-
-    * First Contributor
-    * Other Contributors
-
-.. if needed use this field
-
-  Depending on the plugin type, delete/complete the fields below
+* First Author:  Amelie Deshazer
+* Second Author: Daichi Kozawa
 
 
 Instruments
@@ -49,40 +37,16 @@ Below is the list of instruments included in this plugin
 Actuators
 +++++++++
 
-* **yyy**: control of yyy actuators
-* **xxx**: control of xxx actuators
-
-Viewer0D
-++++++++
-
-* **yyy**: control of yyy 0D detector
-* **xxx**: control of xxx 0D detector
-
-Viewer1D
-++++++++
-
-* **yyy**: control of yyy 1D detector
-* **xxx**: control of xxx 1D detector
-
-
-Viewer2D
-++++++++
-
-* **yyy**: control of yyy 2D detector
-* **xxx**: control of xxx 2D detector
-
-
-PID Models
-==========
-
-
-Extensions
-==========
+* **GSC-02C**: control of xx and yy actuators
+* **RMC-102**: control of xx,yy,zz actuators
+* **SHRC293**: control of xx,yy,zz actuators
+* **SBIS26**: control of xx,yy,zz actuators
 
 
 Installation instructions
 =========================
 
-* PyMoDAQ’s version.
-* Operating system’s version.
-* What manufacturer’s drivers should be installed to make this plugin run?
+* PyMoDAQ’s version: 4.47
+* **RMC-102 USB Driver(for Windows 7/8.1/10)32/64bit *for Remote Acutuator**
+      Install through OptoSigma’s website: 
+      https://www.optosigma.com/us_en/support/software-information/usb-driver?srsltid=AfmBOoqMgQh1GZLnWR-z0n4nsE4CoTmgBSNbEgfJrCWkuGPVxklKYVql
