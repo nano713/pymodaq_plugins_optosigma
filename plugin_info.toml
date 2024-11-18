@@ -6,8 +6,8 @@ SHORT_PLUGIN_NAME = 'optosigma'  #to be modified, for instance daqmx then rename
 
 package-url = 'https://github.com/NanoQM/pymodaq_plugins_optosigma' 
 
-author = 'Author Name'
-author-email = 'Author email'
+author = 'Amelie Deshazer'
+author-email = 'deshazeramelie@gmail.com'
 license = 'MIT'
 
 [plugin-install]
