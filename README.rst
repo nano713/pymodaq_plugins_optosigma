@@ -19,14 +19,15 @@ pymodaq_plugins_optosigma
     :target: https://github.com/PyMoDAQ/pymodaq_plugins_template/actions/workflows/Test.yml
 
 
-Use this template to create a repository on your account and start the development of your own PyMoDAQ plugin!
+Set of OptoSigma controllers for PyMoDAQ that includes the following controllers: {GSC-02C, RMC-102, SHRC203, SBIS26}. 
+Each controller is in a seperate module and can be used independently.
 
 
 Authors
 =======
 
-* First Author:  Amelie Deshazer
-* Second Author: Daichi Kozawa
+* Amelie Deshazer
+* Daichi Kozawa
 
 
 Instruments
