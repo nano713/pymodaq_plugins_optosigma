@@ -46,7 +46,7 @@ Actuators
 Installation instructions
 =========================
 
-* PyMoDAQ’s version: 4.47
+* Tested with PyMoDAQ’s version: 4.4.7
 * **RMC-102 USB Driver(for Windows 7/8.1/10)32/64bit *for Remote Acutuator**
       Install through OptoSigma’s website: 
       https://www.optosigma.com/us_en/support/software-information/usb-driver?srsltid=AfmBOoqMgQh1GZLnWR-z0n4nsE4CoTmgBSNbEgfJrCWkuGPVxklKYVql
