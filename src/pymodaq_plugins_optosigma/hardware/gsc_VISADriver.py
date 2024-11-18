@@ -30,7 +30,7 @@ class GSC:
 
     def connect(self):
         rm = pyvisa.ResourceManager()
-        self._actuator = rm.open_resource(self.rsrc_name)  # Connect to the actuator
+        self._actuator = rm.open_resource(self.rsrc_name) 
         self._actuator.write_termination = "\r\n"
         self._actuator.read_termination = "\r\n"
         self._actuator.baud_rate = 9600
@@ -40,22 +40,18 @@ class GSC:
         """Move the specified channel to the position."""
         if position >= 0:
             self._actuator.write(f"A:{channel}+P{position}")
-            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         else:
             self._actuator.write(f"A:{channel}-P{abs(position)}")
-            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         self._actuator.write("G:")
-        self.wait_for_ready() # DK - wait_for_ready has no attributes
+        self.wait_for_ready()
         self.position[channel - 1] = position
 
     def move_rel(self, position, channel):
         """Move the specified channel to the relative position."""
         if position >= 0:
             self._actuator.write(f"M:{channel}+P{position}")
-            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         else:
             self._actuator.write(f"M:{channel}-P{abs(position)}")
-            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         self._actuator.write("G:")
         self.wait_for_ready()
         self.position[channel - 1] = position + self.position[channel - 1]
@@ -73,7 +69,6 @@ class GSC:
         self._actuator.write(f"H:{channel}")
         self.wait_for_ready()
         self.position[channel - 1] = 0
-        logger.info(f"Homing {channel}") # DK - comment out. duplicates with daq_move.
 
     def set_speed(self, speed_ini, speed_fin, accel_t, channel):
         """Set the speed of the specified channel"""
