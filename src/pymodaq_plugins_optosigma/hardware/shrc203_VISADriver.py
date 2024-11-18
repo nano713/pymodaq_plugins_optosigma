@@ -4,9 +4,7 @@ import pyvisa
 from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
-#delete all logger.info
 
-# DK - reuse this class that we wrote in pymeasure instruments. See an example: https://github.com/nano713/pymeasure/blob/dev/sbis26/pymeasure/instruments/newport/esp300.py
 class AxisError(Exception):
     """
     Raised when a particular axis causes an error for OptoSigma SHRC-203.
@@ -59,18 +57,12 @@ class SHRC203VISADriver:
         """
         self._instr = None
         self.rsrc_name = rsrc_name
-        self.unit = "" # DK - initialize unit
-        # self.channel = {"X": 1, "Y": 2, "Z": 3}
-        # self.channel = [1, 2, 3]
-        self.loop = [None, None, None]# {"X": None, "Y": None, "Z": None
+        self.unit = ""
+        self.loop = [None, None, None]
         self.position = [None, None, None]
         self.speed_ini = [None, None, None]
         self.speed_fin = [None, None, None]
         self.accel_t = [None, None, None]
-        # self.position = {"X":None, "Y": None,"Z" :None}
-        # self.speed_ini = {"X": None, "Y": None, "Z": None}
-        # self.speed_fin = {"X": None, "Y": None, "Z": None}
-        # self.accel_t = {"X": None, "Y": None, "Z": None}
 
     def set_unit(self, unit: str):
         """
@@ -83,19 +75,13 @@ class SHRC203VISADriver:
         """
         self.unit = unit
 
-    # TODO test this method
     def check_error(self, channel):
         """
         Check if there is an error in the specified channel.
         """
-
-        # DK - add timeout with "elif"
-        # DK - "U1,K,K,K,R", fake: "OK"
-
         time0 = time.time()
         error = self._instr.query(f"SRQ:{channel}S")
 
-        # Check if error is either "1", "3", "7", or "F"
         while error[0] not in ["1", "3", "7", "F"]:
              error = self._instr.query(f"SRQ:{channel}S")
              if time0 - time.time() >= 10:
@@ -133,7 +119,6 @@ class SHRC203VISADriver:
         0: Close loop
         """
         self._instr.write(f"F:{channel}{loop}")
-        # if self.check_error(channel) == "OK":
         self.loop[channel-1] = loop
 
     def get_loop(self, channel):
@@ -146,7 +131,7 @@ class SHRC203VISADriver:
         Move the specified channel to the position.
         """
         if position >= 0:
-            self._instr.write(f"A:{channel}+{self.unit}{position}") # DK - need "+" somewhere in the command? Check with the manual
+            self._instr.write(f"A:{channel}+{self.unit}{position}")
             logger.info(f"Moving {channel} to {position}")
         else:
             self._instr.write(f"A:{channel}-{self.unit}{abs(position)}")
@@ -174,7 +159,6 @@ class SHRC203VISADriver:
         else:
             Exception("Invalid parameters")
 
-    # DK test this method
     def get_speed(self, channel):
         """Get the speed of the stage."""
 
@@ -218,9 +202,9 @@ class SHRC203VISADriver:
         """Wait for the stage to stop moving."""
         time0 = time.time()
         while self.read_state(channel) != "R":
-            print(self.read_state(channel)) # DK - make sure you delete print() at the end
+            print(self.read_state(channel))
             time1 = time.time() - time0
-            if time1 >= 60: # seconds
+            if time1 >= 60:
                 logger.warning("Timeout")
                 self.check_error(channel)
                 break
@@ -235,7 +219,7 @@ class SHRC203VISADriver:
         """Read the state if the stage is moving or not.
         B: Busy
         R: Ready"""
-        state = self._instr.query(f"!:{channel}S") # DK - add while loop if possible.
+        state = self._instr.query(f"!:{channel}S") 
         return state
 
     def close(self):
