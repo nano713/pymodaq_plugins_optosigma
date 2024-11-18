@@ -1,6 +1,6 @@
 from typing import Union, List, Dict
 from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType, \
-    DataActuator  # common set of parameters for all actuators
+    DataActuator
 from pymodaq.utils.daq_utils import ThreadCommand
 from pymodaq.utils.parameter import Parameter
 from pymodaq_plugins_optosigma.hardware.rmc_VISADriver import RMCVISADriver
@@ -49,7 +49,7 @@ class DAQ_Move_RMC(DAQ_Move_base):
         float: The position obtained after scaling conversion.
         """
         pos = DataActuator(
-            data=self.controller.get_position(self.axis_value))  # when writing your own plugin replace this line
+            data=self.controller.get_position(self.axis_value)) 
         pos = self.get_position_with_scaling(pos)
         return pos
 
@@ -99,7 +99,6 @@ class DAQ_Move_RMC(DAQ_Move_base):
             self.controller = RMCVISADriver(self.settings["visa_name"])
             self.controller.connect()
 
-        # self.set_initial_conditions()
         info = "RMC Actuator initialized"
         initialized = True
         return info, initialized
@@ -118,7 +117,7 @@ class DAQ_Move_RMC(DAQ_Move_base):
 
         self.controller.move(int(value.value()), self.axis_value)
         self.emit_status(ThreadCommand('Update_Status', [
-            'RMC Actuator moving to position {}'.format(value)]))  # Change this or delete it
+            'RMC Actuator moving to position {}'.format(value)]))
 
     def move_rel(self, value: DataActuator):
         """ Move the actuator to the relative target actuator value defined by value
@@ -133,20 +132,20 @@ class DAQ_Move_RMC(DAQ_Move_base):
 
         self.controller.move_relative(int(value.value()), self.axis_value)
         self.emit_status(ThreadCommand('Update_Status', [
-            'RMC Actuator moving to relative position {}'.format(value)]))  # Change this or delete it
+            'RMC Actuator moving to relative position {}'.format(value)])) 
 
     def move_home(self):
         """Call the reference method of the controller"""
 
         self.controller.home(self.axis_value)
         self.emit_status(
-            ThreadCommand('Update_Status', ['RMC Actuator moving to home position']))  # Change this or delete it
+            ThreadCommand('Update_Status', ['RMC Actuator moving to home position'])) 
 
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
 
         self.controller.stop(self.axis_value)
-        self.emit_status(ThreadCommand('Update_Status', ['RCM Actuator stopped']))  # Change this or delete it
+        self.emit_status(ThreadCommand('Update_Status', ['RCM Actuator stopped'])) 
 
 
 if __name__ == '__main__':
