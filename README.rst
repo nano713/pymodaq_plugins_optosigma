@@ -25,8 +25,8 @@ Use this template to create a repository on your account and start the developme
 Authors
 =======
 
-* First Author  (myemail@xxx.org)
-* Other author (myotheremail@xxx.org)
+* First Author  
+* Other author
 
 .. if needed use this field
 
@@ -49,7 +49,7 @@ Below is the list of instruments included in this plugin
 Actuators
 +++++++++
 
-* **yyy**: control of yyy actuators
+* **GSC-02C**: control of xx and yy actuators
 * **xxx**: control of xxx actuators
 
 Viewer0D
