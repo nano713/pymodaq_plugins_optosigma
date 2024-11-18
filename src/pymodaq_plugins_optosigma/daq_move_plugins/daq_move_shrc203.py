@@ -1,28 +1,13 @@
 from typing import Union, List, Dict
 
-from pymodaq.control_modules.move_utility_classes import (
-    DAQ_Move_base,
-    comon_parameters_fun,
-    main,
-    DataActuatorType,
-    DataActuator,
-)  # common set of parameters for all actuators
-from pymodaq.utils.daq_utils import (
-    ThreadCommand,
-)  # object used to send info back to the main thread
+from pymodaq.control_modules.move_utility_classes import (DAQ_Move_base, comon_parameters_fun, main, DataActuatorType, DataActuator,) 
+from pymodaq.utils.daq_utils import (ThreadCommand) 
 from pymodaq.utils.parameter import Parameter
-from pymodaq_plugins_optosigma.hardware.shrc203_VISADriver import (
-    SHRC203VISADriver as SHRC203,
-)
+from pymodaq_plugins_optosigma.hardware.shrc203_VISADriver import ( SHRC203VISADriver as SHRC203)
 from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
 
-# DK - follow the naming convention. this file name should be daq_move_SHRC203. See
-# https://pymodaq.cnrs.fr/en/4.4.x/developer_folder/instrument_plugins.html#naming-convention.
-
-
-# The file name should be daq_move_SHRC203.py and the class name should be DAQ_Move_SHRC203 (consistent upper/lower case)
 class DAQ_Move_SHRC203(DAQ_Move_base):
     """Instrument plugin class for an actuator.
 
@@ -45,50 +30,36 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     # TODO add your particular attributes here if any
     """
 
-    # DK - add defaults_unit = "um" and daq_move will take this.
 
     is_multiaxes = True 
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y": 2, "Z": 3}
-    # DK - It may be good to use 'm' unit to apply _controller_units feature. I am afraid that mm becomes kilo micrometers k um
-    # DK - redo default units.
-    _controller_units: Union[str, List[str]] = SHRC203.default_units # DK - replace with SHRC203VISADriver.default_units to get the default unit
-    _epsilon: Union[float, List[float]] = (
-        0.1  # TODO replace this by a value that is correct depending on your controller
-    )
-    # TODO it could be a single float of a list of float (as much as the number of axes)
-    # Leave this as it is.
-    data_actuator_type = (
-        DataActuatorType.DataActuator
-    ) 
+    _controller_units: Union[str, List[str]] = SHRC203.default_units 
+    _epsilon: Union[float, List[float]] = (0.1)
+    data_actuator_type = (DataActuatorType.DataActuator) 
 
     params = [
         {
             "title": "Instrument Address:",
             "name": "visa_name",
             "type": "str",
-            "value": "ASRL3::INSTR",# DK - Replace this with "ASRL3::INSTR" or "" (empty). "value" is used as an initial value. :
-                                    # Make note value must be changed to the actual serial number of the device.
+            "value": "ASRL3::INSTR",
         },
         {
             "title": "Unit:",
             "name": "unit",
             "type": "list",
-            "limits": ["um", "mm", "nm", "deg", "pulse"], # DK - replace 'values' with 'limits'
+            "limits": ["um", "mm", "nm", "deg", "pulse"], 
             "value": "um",
         },
-        {"title": "Loop:", "name": "loop", "type": "int", "value": 0},# DK - 'value' should be  "" (empty)
-        {"title": "Speed Initial:", "name": "speed_ini", "type": "float", "value": 0},# DK - value "" (empty)
-        {"title": "Acceleration Time:", "name": "accel_t", "type": "float", "value": 1},# DK - value "" (empty). 'title' should be "Acceleration Time"
-        {"title": "Speed Final:", "name": "speed_fin", "type": "float", "value": 1.2},# DK - value "" (empty)
+        {"title": "Loop:", "name": "loop", "type": "int", "value": 0},
+        {"title": "Speed Initial:", "name": "speed_ini", "type": "float", "value": 0},
+        {"title": "Acceleration Time:", "name": "accel_t", "type": "float", "value": 1},
+        {"title": "Speed Final:", "name": "speed_fin", "type": "float", "value": 1.2},
     ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
         self.stage: SHRC203 = None 
-        # self.axis_value = None
-        #self.speed_ini = None # DK - Delete
-        #self.default_units = "um" # DK - replace with _controller_units to be consistent
 
-    # DK data = self.controller.get_position(self.axis_value) See example in https://github.com/nano713/pymodaq_plugins_thorlabs/blob/dev/kpz_plugin/src/pymodaq_plugins_thorlabs/daq_move_plugins/daq_move_BrushlessDCMotor.py
     def get_actuator_value(self):
         """Get the current value from the hardware with scaling conversion.
 
@@ -97,17 +68,15 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         float: The position obtained after scaling conversion.
         """
         pos = DataActuator(
-            data=self.stage.get_position(self.axis_value) # DK - replace with self.axis_value
-        )  # when writing your own plugin replace this line
+            data=self.stage.get_position(self.axis_value) 
+        ) 
         pos = self.get_position_with_scaling(pos)
         return pos
 
-    # run close method
     def close(self):
         """Terminate the communication protocol"""
         return self.stage.close()
 
-    # DK - To get the axis name, we should use `self.axis_value`
     def commit_settings(self, param: Parameter):
         """Apply the consequences of a change of value in the detector settings
 
@@ -116,12 +85,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         param: Parameter
             A given parameter (within detector_settings) whose value has been changed by the user
         """
-        # default_units = 'um' # default units for the stage
-        if (
-            param.name() == "speed_ini"
-            or param.name() == "speed_fin"
-            or param.name() == "accel_t"
-        ):
+        if (param.name() == "speed_ini" or param.name() == "speed_fin" or param.name() == "accel_t"):
             self.stage.set_speed(
                 self.speed_ini, self.speed_fin, self.accel_t, self.axis_value
             )
@@ -131,11 +95,10 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         elif param.name() == "unit":
             unit_dict = {"um": "U", "mm": "M", "nm": "N", "deg": "D", "pulse": "P"}
             self.stage.set_unit(unit_dict[self.settings["unit"]])
-            self._controller_units = self.settings["unit"] # DK -add this line to update the unit in GUI
+            self._controller_units = self.settings["unit"] 
         else:
             pass
 
-    # DK - run self.controller = SHRC203VISADriver(rsrc_name) if self.is_master = True
     def ini_stage(self, controller=None):
         """Actuator communication initialization
 
@@ -152,7 +115,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         """
         self.ini_stage_init(
             slave_controller=self.stage
-        )  # will be useful when controller is slave
+        ) 
 
         if self.is_master:
             self.stage = SHRC203(self.settings["visa_name"]) 
@@ -160,13 +123,12 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         else:
             logger.warning("No controller has been defined. Please define one")
 
-        info = "SHRC203 is Initialized"  # DK - replace this line with the actual info
+        info = "SHRC203 is Initialized" 
         self.stage.set_mode()
         initialized = True
         return info, initialized
 
-    # DK - use move method
-    def move_abs(self, value: DataActuator): # DK - add channel
+    def move_abs(self, value: DataActuator): 
         """Move the actuator to the absolute target defined by value
 
         Parameters
@@ -174,17 +136,10 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         value: (float) value of the absolute target positioning
         """
 
-        # value = self.check_bound(value)
         value = self.set_position_with_scaling(value)
 
-        self.stage.move(value.value(), self.axis_value) # DK - Add channel attribute (=self.axis_value)
-        # DK - delete emit_status because this will be recorded on the log file but we do not have to record every signle move.
-        # self.emit_status(
-        #     ThreadCommand("Update_Status", ["SHRC203 has moved to the target position"])
-        # )
+        self.stage.move(value.value(), self.axis_value) 
 
-    # DK - use move_relative method
-    # DK - follow template
     def move_rel(self, value: DataActuator):
         """Move the actuator to the relative target actuator value defined by value
 
@@ -198,19 +153,17 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         logger.info(f"value={value} in move_rel")
 
         self.stage.move_relative(value.value(), self.axis_value)
-        logger.info(f"pos={value.value()} in move_rel") # DK - Add channel attribute (=self.axis_value)
+        logger.info(f"pos={value.value()} in move_rel") 
         
     def move_home(self):
         """Call the reference method of the controller"""
-        self.stage.home(self.axis_value) # DK - Add channel attribute (=self.axis_value)
-        # self.emit_status( # DK - delete
-        #     ThreadCommand("Update_Status", ["SHRC203 has moved to the home position"])
-        # )
+        self.stage.home(self.axis_value)
+       
 
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
-        self.stage.stop(self.axis_value) # DK - Add channel attribute (=self.axis_value)
-        self.emit_status(ThreadCommand("Update_Status", ["Instrument stopped"])) # DK this is okay to keep because stop does not often happen.
+        self.stage.stop(self.axis_value)
+        self.emit_status(ThreadCommand("Update_Status", ["Instrument stopped"])) 
 
     if __name__ == "__main__":
         main(__file__)
