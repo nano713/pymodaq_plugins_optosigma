@@ -127,7 +127,7 @@ class SBIS26VISADriver:
             logger.debug(self.status(channel)) 
             time1 = time.time() - time0
             if time1 >= 60:
-                logger.warning("Timeout")
+                logger.error("Timeout")
                 break
             time.sleep(0.2)
 
