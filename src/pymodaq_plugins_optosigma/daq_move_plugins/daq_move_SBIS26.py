@@ -54,7 +54,6 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         """
       
         pos = DataActuator(data=self.controller.get_position(self.axis_value)) 
-        logger.info(f"pos={pos} in get_actuator_value")
         pos = self.get_position_with_scaling(pos)
         return pos
 
@@ -97,7 +96,7 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
             self.controller = SBIS26VISADriver(self.settings["visa_name"])
             self.controller.connect()
         else: 
-            logger.warning("This plugin is not initialized")
+            logger.error("This plugin is not initialized")
         
         info = "SBIS26 is initialized"
         initialized = True
@@ -116,7 +115,6 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         value = self.set_position_with_scaling(value)
 
         self.controller.move(value.value(), self.axis_value)
-        logger.info(f"po    s={value.value()} in move_abs")
 
     def move_rel(self, value: DataActuator):
         """ Move the actuator to the relative target actuator value defined by value
@@ -128,10 +126,8 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
-        logger.info(f"value={value} in move_rel")
 
         self.controller.move_relative(value.value(), self.axis_value)
-        logger.info(f"pos={value.value()} in move_rel")
 
     def move_home(self):
         """Call the reference method of the controller"""
