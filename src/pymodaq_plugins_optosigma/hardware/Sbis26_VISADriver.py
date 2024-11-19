@@ -20,7 +20,6 @@ class SBIS26VISADriver:
         rm = pyvisa.ResourceManager()
         self._stage = rm.open_resource(self.rsrc_name)
         self._stage.baud_rate = 38400
-        self._stage.write_termination = '\r\n'
         self._stage.read_termination = '\r\n'
         self._stage.write("#CONNECT")
 
