@@ -70,7 +70,6 @@ class DAQ_Move_RMC(DAQ_Move_base):
         for channel in channels:
             self.controller.set_speed(speed, channel)
             self.controller.home(channel)
-        logger.info(f"Speed has been set to {speed} at channels {channels}")
 
     def ini_stage(self, controller=None):
         """Actuator communication initialization
@@ -109,8 +108,6 @@ class DAQ_Move_RMC(DAQ_Move_base):
         value = self.set_position_with_scaling(value)
 
         self.controller.move(int(value.value()), self.axis_value)
-        self.emit_status(ThreadCommand('Update_Status', [
-            'RMC Actuator moving to position {}'.format(value)]))
 
     def move_rel(self, value: DataActuator):
         """ Move the actuator to the relative target actuator value defined by value
@@ -124,22 +121,15 @@ class DAQ_Move_RMC(DAQ_Move_base):
         value = self.set_position_relative_with_scaling(value)
 
         self.controller.move_relative(int(value.value()), self.axis_value)
-        self.emit_status(ThreadCommand('Update_Status', [
-            'RMC Actuator moving to relative position {}'.format(value)])) 
 
     def move_home(self):
         """Call the reference method of the controller"""
 
         self.controller.home(self.axis_value)
-        self.emit_status(
-            ThreadCommand('Update_Status', ['RMC Actuator moving to home position'])) 
-
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
 
         self.controller.stop(self.axis_value)
-        self.emit_status(ThreadCommand('Update_Status', ['RCM Actuator stopped'])) 
-
 
 if __name__ == '__main__':
     main(__file__)
