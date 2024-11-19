@@ -64,7 +64,8 @@ class SBIS26VISADriver:
             channel (int): Channel of the stage.
         Returns (float): Position of the stage.
         """
-        logger.info(f"position = {self.position[channel - 1]} in get_position of hardware")
+        if (self.position[channel -1] is None): 
+            return logger.error("Position is None")
         return self.position[channel - 1]
 
     def move(self, position, channel):
@@ -105,17 +106,17 @@ class SBIS26VISADriver:
         self.accel_t = accel_t
         if 0 < speed_ini <= speed_fin and accel_t > 0:
             self._stage.write(f"D:D,{channel},{speed_ini},{speed_fin},{accel_t}")
-            logger.info(f"Set Speed of axis {channel}: speed initial {speed_ini}, speed final {speed_fin}, acceleration time {accel_t}")
         else:
-            logger.warning("Invalid parameters")
+            logger.error("Invalid parameters")
 
     def get_speed(self, channel):
         """Gets the speed of the stage."""
+        if (self.speed_ini[channel - 1] is None or self.speed_fin[channel - 1] is None or self.accel_t[channel - 1] is None):
+            return logger.error("Parameters are None.")
         return self.speed_ini[channel - 1], self.speed_fin[channel - 1], self.accel_t[channel - 1]
 
     def stop(self):
         """Stops the stage."""
-
         self._stage.write("LE:A")
 
     def wait_for_ready(self, channel):
