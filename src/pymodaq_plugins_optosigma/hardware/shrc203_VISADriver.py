@@ -1,4 +1,3 @@
-import numpy as np
 import time
 import pyvisa
 from pymodaq.utils.logger import set_logger, get_module_name
@@ -85,7 +84,7 @@ class SHRC203VISADriver:
         while error[0] not in ["1", "3", "7", "F"]:
              error = self._instr.query(f"SRQ:{channel}S")
              if time0 - time.time() >= 10:
-                logger.warning("Timeout")
+                logger.error("Timeout")
                 break
 
         error = error.split(",")[0]
@@ -105,7 +104,6 @@ class SHRC203VISADriver:
             self._instr.parity = pyvisa.constants.Parity.none 
             self._instr.write_termination = "\r\n" 
             self._instr.read_termination = "\r\n" 
-            logger.info(f"Connection to {self._instr} successful")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
     
@@ -132,16 +130,16 @@ class SHRC203VISADriver:
         """
         if position >= 0:
             self._instr.write(f"A:{channel}+{self.unit}{position}")
-            logger.info(f"Moving {channel} to {position}")
         else:
             self._instr.write(f"A:{channel}-{self.unit}{abs(position)}")
-            logger.info(f"Moving {channel} to {position}")
         self._instr.write("G:")
         self.wait_for_ready(channel)
         self.position[channel-1] = position
 
 
     def get_position(self, channel):
+        if self.position[channel-1] is None:
+            return logger.error("Position is None")
         return self.position[channel-1]
 
 
@@ -154,7 +152,7 @@ class SHRC203VISADriver:
             channel (int): Channel of the stage.
         """
 
-        if 0 < speed_ini <= speed_fin and accel_t> 0:
+        if 0 < speed_ini <= speed_fin and accel_t > 0:
             self._instr.write(f"D:{channel},{speed_ini},{speed_fin},{accel_t}")
         else:
             Exception("Invalid parameters")
@@ -168,10 +166,9 @@ class SHRC203VISADriver:
         while speed[0] != "S":
             speed = self._instr.query(f"?:D{channel}")
             if time0 - time.time() >= 5:
-                logger.warning("Timeout")
+                logger.error("Timeout")
                 return self.speed_ini[channel-1], self.speed_fin[channel-1], self.accel_t[channel-1]
                 
-
         self.speed_ini[channel-1] = speed.split("S")[1].split("F")[0]
         self.speed_fin[channel-1] = speed.split("F")[1].split("R")[0]
         self.accel_t[channel-1]= speed.split("R")[1]
@@ -180,15 +177,9 @@ class SHRC203VISADriver:
     def move_relative(self, position, channel):
         """Move the stage to a relative position."""
         if position >= 0:
-            self._instr.write(
-                f"M:{channel}" + f"+{self.unit}{position}"
-            )
-            logger.warning(f"Moving {channel} to {position}") 
+            self._instr.write(f"M:{channel}" + f"+{self.unit}{position}")
         else:
-            self._instr.write(
-                f"M:{channel}" + f"-{self.unit}{abs(position)}"
-            )  
-            logger.warning(f"Moving {channel} to {position}")
+            self._instr.write(f"M:{channel}" + f"-{self.unit}{abs(position)}")  
         self._instr.write("G:")
         self.wait_for_ready(channel)
 
@@ -204,7 +195,7 @@ class SHRC203VISADriver:
         while self.read_state(channel) != "R":
             time1 = time.time() - time0
             if time1 >= 60:
-                logger.warning("Timeout")
+                logger.error("Timeout")
                 self.check_error(channel)
                 break
             time.sleep(0.2)
@@ -223,4 +214,4 @@ class SHRC203VISADriver:
 
     def close(self):
         """Close the connection with the controller."""
-        pass
+        self.rm.close()
