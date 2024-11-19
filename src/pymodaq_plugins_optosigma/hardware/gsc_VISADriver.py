@@ -3,8 +3,6 @@ import time
 import logging
 
 logger = logging.getLogger(__name__)
-
-
 class AxisError(Exception):
     MESSAGES = {
         "X": "Command or parameter errors",
@@ -15,7 +13,6 @@ class AxisError(Exception):
 
     def __init__(self, error_code):
         self.message = self.MESSAGES[error_code]
-
 
 class GSC:
     default_units = ''
@@ -34,7 +31,6 @@ class GSC:
         self._actuator.write_termination = "\r\n"
         self._actuator.read_termination = "\r\n"
         self._actuator.baud_rate = 9600
-        logger.info(f"Connection to {self._actuator} successful")
 
     def move(self, position, channel):
         """Move the specified channel to the position."""
@@ -62,6 +58,8 @@ class GSC:
 
     def get_position(self, channel):
         """Get the position of the specified channel."""
+        if self.position[channel - 1] is None:
+            return logger.error("Position is None")
         return self.position[channel - 1]
 
     def home(self, channel):
@@ -77,9 +75,13 @@ class GSC:
             self.speed_ini[channel - 1] = speed_ini
             self.speed_fin[channel - 1] = speed_fin
             self.accel_t[channel - 1] = accel_t
+        else: 
+            logger.error("Speed, acceleration, and deceleration must be greater than 0")
 
     def get_speed(self, channel):
         """Get the speed of the specified channel"""
+        if self.speed_ini[channel - 1] is None or self.speed_fin[channel - 1] is None or self.accel_t[channel - 1] is None:
+            return logger.error("Speed is None")
         return self.speed[channel - 1]
 
     def close(self):
@@ -103,7 +105,7 @@ class GSC:
         while self.read_state() != "R":
             time1 = time.time() - time0
             if time1 >= 60:
-                logger.warning("Timeout")
+                logger.error("Timeout")
                 self.check_error()
                 break
             time.sleep(0.2)
