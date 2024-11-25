@@ -11,6 +11,7 @@ class SBIS26VISADriver:
     def __init__(self, rsrc_name):
         self._stage = None
         self.rsrc_name = rsrc_name
+        # Add self.rm = None
         self.speed_ini = [-1, -1, -1]
         self.speed_fin = [-1, -1, -1]
         self.accel_t = [-1, -1, -1]
@@ -18,8 +19,8 @@ class SBIS26VISADriver:
 
     def connect(self):
         """Initializes the stage."""
-        rm = pyvisa.ResourceManager()
-        self._stage = rm.open_resource(self.rsrc_name)
+        rm = pyvisa.ResourceManager() # DK - self.rm =
+        self._stage = rm.open_resource(self.rsrc_name)  # DK - ... = self.rm...
         self._stage.baud_rate = 38400
         self._stage.write_termination = '\r\n'
         self._stage.read_termination = '\r\n'

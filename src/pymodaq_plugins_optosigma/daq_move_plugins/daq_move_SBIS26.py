@@ -3,7 +3,7 @@ import logging
 from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType, DataActuator 
 from pymodaq.utils.daq_utils import ThreadCommand 
 from pymodaq.utils.parameter import Parameter
-from pymodaq_plugins_optosigma.hardware.Sbis26_VISADriver import SBIS26VISADriver
+from pymodaq_plugins_optosigma.hardware.sbis26_VISADriver import SBIS26VISADriver
 logger = logging.getLogger(__name__)
 
 class DAQ_Move_SBIS26(DAQ_Move_base):
@@ -37,7 +37,7 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
     )
     data_actuator_type = (
         DataActuatorType.DataActuator
-    ) 
+    ) # DK - follow the template (no parenthesis)-> data_actuator_type = DataActuatorType.DataActuator
 
     params = [
         {
@@ -63,7 +63,7 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         """
       
         pos = DataActuator(data=self.controller.get_position(self.axis_value)) 
-        logger.info(f"pos={pos} in get_actuator_value")
+        logger.info(f"pos={pos} in get_actuator_value") # DK - this should be logger.debug(...
         pos = self.get_position_with_scaling(pos)
         return pos
 
@@ -125,7 +125,7 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         value = self.set_position_with_scaling(value)
 
         self.controller.move(value.value(), self.axis_value)
-        logger.info(f"po    s={value.value()} in move_abs")
+        logger.info(f"pos={value.value()} in move_abs") # DK - logger.debug
 
     def move_rel(self, value: DataActuator):
         """ Move the actuator to the relative target actuator value defined by value
@@ -137,10 +137,10 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
-        logger.info(f"value={value} in move_rel")
+        logger.info(f"value={value} in move_rel")  # DK - logger.debug
 
         self.controller.move_relative(value.value(), self.axis_value)
-        logger.info(f"pos={value.value()} in move_rel")
+        logger.info(f"pos={value.value()} in move_rel") # DK - logger.debug
 
     def move_home(self):
         """Call the reference method of the controller"""
