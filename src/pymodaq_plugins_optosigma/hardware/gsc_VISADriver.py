@@ -3,8 +3,6 @@ import time
 import logging
 
 logger = logging.getLogger(__name__)
-
-
 class AxisError(Exception):
     MESSAGES = {
         "X": "Command or parameter errors",
@@ -16,46 +14,40 @@ class AxisError(Exception):
     def __init__(self, error_code):
         self.message = self.MESSAGES[error_code]
 
-
 class GSC:
     default_units = ''
 
     def __init__(self, rsrc_name):
         self._actuator = None
         self.rsrc_name = rsrc_name
-        self.position = [0, 0] 
+        self.position = [0, 0]
         self.speed_ini = [0, 0]
         self.speed_fin = [0, 0]
         self.accel_t = [0, 0]
 
     def connect(self):
         rm = pyvisa.ResourceManager()
-        self._actuator = rm.open_resource(self.rsrc_name)  # Connect to the actuator
+        self._actuator = rm.open_resource(self.rsrc_name)
         self._actuator.write_termination = "\r\n"
         self._actuator.read_termination = "\r\n"
         self._actuator.baud_rate = 9600
-        logger.info(f"Connection to {self._actuator} successful")
 
     def move(self, position, channel):
         """Move the specified channel to the position."""
         if position >= 0:
             self._actuator.write(f"A:{channel}+P{position}")
-            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         else:
             self._actuator.write(f"A:{channel}-P{abs(position)}")
-            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         self._actuator.write("G:")
-        self.wait_for_ready() # DK - wait_for_ready has no attributes
+        self.wait_for_ready()
         self.position[channel - 1] = position
 
     def move_rel(self, position, channel):
         """Move the specified channel to the relative position."""
         if position >= 0:
             self._actuator.write(f"M:{channel}+P{position}")
-            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         else:
             self._actuator.write(f"M:{channel}-P{abs(position)}")
-            logger.info(f"Moving {channel} to {position}") # DK - comment out.
         self._actuator.write("G:")
         self.wait_for_ready()
         self.position[channel - 1] = position + self.position[channel - 1]
@@ -66,6 +58,8 @@ class GSC:
 
     def get_position(self, channel):
         """Get the position of the specified channel."""
+        if self.position[channel - 1] is None:
+            return logger.error("Position is None")
         return self.position[channel - 1]
 
     def home(self, channel):
@@ -73,7 +67,6 @@ class GSC:
         self._actuator.write(f"H:{channel}")
         self.wait_for_ready()
         self.position[channel - 1] = 0
-        logger.info(f"Homing {channel}") # DK - comment out. duplicates with daq_move.
 
     def set_speed(self, speed_ini, speed_fin, accel_t, channel):
         """Set the speed of the specified channel"""
@@ -82,9 +75,13 @@ class GSC:
             self.speed_ini[channel - 1] = speed_ini
             self.speed_fin[channel - 1] = speed_fin
             self.accel_t[channel - 1] = accel_t
+        else:
+            logger.error("Speed, acceleration, and deceleration must be greater than 0")
 
     def get_speed(self, channel):
         """Get the speed of the specified channel"""
+        if self.speed_ini[channel - 1] is None or self.speed_fin[channel - 1] is None or self.accel_t[channel - 1] is None:
+            return logger.error("Speed is None")
         return self.speed[channel - 1]
 
     def close(self):
@@ -100,7 +97,7 @@ class GSC:
 
     def read_state(self):
         """Read the state of the specified channel."""
-        state = self._actuator.query(f"!:") 
+        state = self._actuator.query(f"!:")
         return state
 
     def wait_for_ready(self):
@@ -108,7 +105,7 @@ class GSC:
         while self.read_state() != "R":
             time1 = time.time() - time0
             if time1 >= 60:
-                logger.warning("Timeout")
+                logger.error("Timeout")
                 self.check_error()
                 break
             time.sleep(0.2)
