@@ -1,21 +1,11 @@
 from typing import Union, List, Dict
 import logging
-from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType, DataActuator  # common set of parameters for all actuators
-from pymodaq.utils.daq_utils import ThreadCommand # object used to send info back to the main thread
+from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType, DataActuator 
+from pymodaq.utils.daq_utils import ThreadCommand 
 from pymodaq.utils.parameter import Parameter
 from pymodaq_plugins_optosigma.hardware.Sbis26_VISADriver import SBIS26VISADriver
 logger = logging.getLogger(__name__)
 
-
-# TODO:
-# (1) change the name of the following class to DAQ_Move_TheNameOfYourChoice
-# (2) change the name of this file to daq_move_TheNameOfYourChoice ("TheNameOfYourChoice" should be the SAME
-#     for the class name and the file name.)
-# (3) this file should then be put into the right folder, namely IN THE FOLDER OF THE PLUGIN YOU ARE DEVELOPING:
-#     pymodaq_plugins_my_plugin/daq_move_plugins
-
-# rsrc_name = "" # DK - delete this line
-# DK - if the class name is DAQ_Move_SBIS26, then the file name should be daq_move_SBIS26.py (the same case after the last underscore)
 class DAQ_Move_SBIS26(DAQ_Move_base):
     """ Instrument plugin class for an actuator.
 
@@ -41,7 +31,7 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
     
     is_multiaxes = True 
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y": 2, "Z": 3}
-    _controller_units: Union[str, List[str]] = "" # DK - replace with "". SBIS26 only has pulse unit.
+    _controller_units: Union[str, List[str]] = ""
     _epsilon: Union[float, List[float]] = (
         0.1  
     )
@@ -56,13 +46,6 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
             "type": "str",
             "value": "ASRL4::INSTR",
         },
-        # {
-        #     "title": "Unit:",
-        #     "name": "unit",
-        #     "type": "list",
-        #     "limits": ["um", "mm", "nm", "deg", "pulse"],
-        #     "value": "um",
-        # },
         {"title": "Speed Initial:", "name": "speed_ini", "type": "float", "value": 1000},
         {"title": "Acceleration Time:", "name": "accel_t", "type": "float", "value": 100},
         {"title": "Speed Final:", "name": "speed_fin", "type": "float", "value": 1000},
@@ -78,9 +61,8 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         -------
         float: The position obtained after scaling conversion.
         """
-        ## TODO for your custom plugin
-        # raise NotImplemented  # when writing your own plugin remove this line
-        pos = DataActuator(data=self.controller.get_position(self.axis_value))  # when writing your own plugin replace this line
+      
+        pos = DataActuator(data=self.controller.get_position(self.axis_value)) 
         logger.info(f"pos={pos} in get_actuator_value")
         pos = self.get_position_with_scaling(pos)
         return pos
@@ -100,12 +82,6 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         """
         if param.name() == "speed_ini" or param.name() == "speed_fin" or param.name() == "accel_t":
            self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"], self.settings["accel_t"], self.axis_value)
-           # AD: self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"], self.settings["accel_t"], self._axis_names)?
-           # or is this old formatting that is no longer used? 
-        # elif param.name() == "unit":
-        #     unit_dict = {"um": "U", "mm": "M", "nm": "N", "deg": "D", "pulse": "P"}
-        #     self.stage.set_unit(unit_dict[self.settings["unit"]])
-        #     self._controller_units = self.settings["unit"]
         else:
             pass
         
@@ -143,7 +119,7 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         ----------
         value: (float) value of the absolute target positioning
         """
-        value = self.check_bound(value)  #if user checked bounds, the defined bounds are applied here
+        value = self.check_bound(value)
         self.target_value = value
 
         value = self.set_position_with_scaling(value)
@@ -163,19 +139,13 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         value = self.set_position_relative_with_scaling(value)
         logger.info(f"value={value} in move_rel")
 
-        # value = self.check_bound(self.current_position + value) - self.current_position
-        # self.current_position = self.controller.get_position(self.axis_value)
-        # self.target_value = value + self.current_position
-        # value = self.set_position_relative_with_scaling(value)
-
         self.controller.move_relative(value.value(), self.axis_value)
         logger.info(f"pos={value.value()} in move_rel")
 
     def move_home(self):
         """Call the reference method of the controller"""
         self.controller.home(self.axis_value)
-        # self.emit_status(ThreadCommand('Update_Status', ['SBIS26 has moved to the home position']))
-
+ 
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
         self.controller.stop()
