@@ -4,14 +4,12 @@ from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
 
-
 class SBIS26VISADriver:
     """VISA class driver for the OptoSigma stage SBIS26."""
 
     def __init__(self, rsrc_name):
         self._stage = None
         self.rsrc_name = rsrc_name
-        # Add self.rm = None
         self.speed_ini = [-1, -1, -1]
         self.speed_fin = [-1, -1, -1]
         self.accel_t = [-1, -1, -1]
@@ -19,10 +17,9 @@ class SBIS26VISADriver:
 
     def connect(self):
         """Initializes the stage."""
-        rm = pyvisa.ResourceManager() # DK - self.rm =
-        self._stage = rm.open_resource(self.rsrc_name)  # DK - ... = self.rm...
+        rm = pyvisa.ResourceManager()
+        self._stage = rm.open_resource(self.rsrc_name)
         self._stage.baud_rate = 38400
-        self._stage.write_termination = '\r\n'
         self._stage.read_termination = '\r\n'
         self._stage.write("#CONNECT")
 
@@ -55,7 +52,7 @@ class SBIS26VISADriver:
             channel (int): Channel of the stage.
         Returns (str): Status of the stage.
         """
-        self._stage.query(f"SRQ:D,{channel}") 
+        self._stage.query(f"SRQ:D,{channel}")
         status_str = self._stage.query(f"SRQ:D,{channel}")
         key = status_str.split(",")[-1]
         return key
@@ -66,7 +63,8 @@ class SBIS26VISADriver:
             channel (int): Channel of the stage.
         Returns (float): Position of the stage.
         """
-        logger.info(f"position = {self.position[channel - 1]} in get_position of hardware")
+        if (self.position[channel -1] is None):
+            return logger.error("Position is None")
         return self.position[channel - 1]
 
     def move(self, position, channel):
@@ -107,17 +105,17 @@ class SBIS26VISADriver:
         self.accel_t = accel_t
         if 0 < speed_ini <= speed_fin and accel_t > 0:
             self._stage.write(f"D:D,{channel},{speed_ini},{speed_fin},{accel_t}")
-            logger.info(f"Set Speed of axis {channel}: speed initial {speed_ini}, speed final {speed_fin}, acceleration time {accel_t}")
         else:
-            logger.warning("Invalid parameters")
+            logger.error("Invalid parameters")
 
     def get_speed(self, channel):
         """Gets the speed of the stage."""
+        if (self.speed_ini[channel - 1] is None or self.speed_fin[channel - 1] is None or self.accel_t[channel - 1] is None):
+            return logger.error("Parameters are None.")
         return self.speed_ini[channel - 1], self.speed_fin[channel - 1], self.accel_t[channel - 1]
 
     def stop(self):
         """Stops the stage."""
-
         self._stage.write("LE:A")
 
     def wait_for_ready(self, channel):
@@ -125,10 +123,10 @@ class SBIS26VISADriver:
 
         time0 = time.time()
         while self.status(channel) != "R":
-            logger.debug(self.status(channel)) 
+            logger.debug(self.status(channel))
             time1 = time.time() - time0
             if time1 >= 60:
-                logger.warning("Timeout")
+                logger.error("Timeout")
                 break
             time.sleep(0.2)
 
@@ -140,4 +138,4 @@ class SBIS26VISADriver:
 
     def close(self):
         """Closes the stage."""
-        self.rm.close()
+        pyvisa.ResourceManager().close()
