@@ -1,10 +1,9 @@
 ## To modify by developer(s) of the plugin
 
 [plugin-info]
-SHORT_PLUGIN_NAME = 'optosigma'  #to be modified, for instance daqmx then rename the module name:
-# (pymodaq_plugins_optosigma become pymodaq_plugins_daqmx for instance)
-
+SHORT_PLUGIN_NAME = 'optosigma'
 package-url = 'https://github.com/NanoQM/pymodaq_plugins_optosigma' 
+description = 'Set of PyMoDAQ plugins for various physical measurements from optosigma'
 
 author = 'Amelie Deshazer'
 author-email = 'deshazeramelie@gmail.com'
