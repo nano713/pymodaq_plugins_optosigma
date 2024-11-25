@@ -1,5 +1,5 @@
-import time
 import pyvisa
+import time
 from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
