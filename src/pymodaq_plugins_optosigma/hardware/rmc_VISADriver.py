@@ -4,7 +4,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class AxisError(Exception):
     MESSAGES = {
         "K": "Normal state",
@@ -14,7 +13,6 @@ class AxisError(Exception):
 
     def __init__(self, error_code):
         self.message = self.MESSAGES[error_code]
-
 
 class RMCVISADriver:
     """Class to communicate with the RMC Actuator"""
@@ -28,6 +26,7 @@ class RMCVISADriver:
         self.speed = [None, None]
 
     def check_error(self):
+        """Check for errors."""
         error = self._actuator.query("Q:")
         error = error.split(",")[2]
         if error != "K":
@@ -35,6 +34,7 @@ class RMCVISADriver:
             AxisError(error)
 
     def set_speed(self, speed, channel):
+        """Set the speed of the specified channel."""
         if 0 < speed <= 8:
             speed = self._actuator.write(f"D:{channel}J{speed}")
             self.speed[channel - 1] = speed
@@ -43,20 +43,23 @@ class RMCVISADriver:
 
     def get_speed(self, channel):
         """Returns the speed of the specified channel."""
+        if self.speed[channel - 1] is None:
+            return logger.error("Speed is None")
         return self.speed[channel - 1]
 
     def connect(self):
+        """Connect to the actuator."""
         try:
             rm = pyvisa.ResourceManager()
             self._actuator = rm.open_resource(self.rsrc_name)
             self._actuator.write_termination = "\r\n"
             self._actuator.read_termination = "\r\n"
-            logger.info(f"Connection to {self._actuator} successful")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
 
     def set_mode(self):
-        self._actuator.write("P:1")  # Manual mode disabeled
+        """Set the actuator to remote mode."""
+        self._actuator.write("P:1")
 
     def move(self, position, channel):
         """Move the actuator to the specified position on the given channel.
@@ -80,40 +83,35 @@ class RMCVISADriver:
 
     def get_position(self, channel):
         """Returns the position of the specified channel."""
-        # position = self._actuator.query(f"Q:")
-        # while position[0] != "+" or position[0] != "-":
-        #     position = self._actuator.query(f"Q:")
-        #
-        # position = int(position.split(",")[channel-1].replace(" ",""))
-
+        if self.position[channel - 1] is None:
+            return logger.error("Position is None")
         return self.position[channel - 1]
 
     def move_relative(self, position, channel):
+        """Move the specified channel to the relative position."""
         self.wait_for_ready(channel)
         if position >= 0:
             self._actuator.write(f"M:{channel}+U{position}")
-            logger.info(f"Moving {channel} to {position}")
         else:
             self._actuator.write(f"M:{channel}-U{abs(position)}")
-            logger.info(f"Moving {channel} to {position}")
-        self._actuator.write("G:")  # check if this is correct
+        self._actuator.write("G:")
         self.wait_for_ready(channel)
         self.position[channel - 1] = position + self.position[channel - 1]
 
     def home(self, channel):
+        """Move the specified channel to the home position"""
         self.wait_for_ready(channel)
         self._actuator.write(f"H:{channel}")
-        logger.info(f"Homing {channel}")
         self.wait_for_ready(channel)
         self.position[channel - 1] = 0
 
     def wait_for_ready(self, channel):
+        """Wait for the actuator to be ready."""
         time0 = time.time()
         while self.read_state(channel) != "R":
-            logger.info("State: " + self.read_state(channel))
             time1 = time.time() - time0
             if time1 >= 60:
-                logger.warning("Timeout")
+                logger.error("Timeout")
                 self.check_error(channel)
                 break
             time.sleep(0.2)
@@ -121,7 +119,6 @@ class RMCVISADriver:
     def stop(self, channel):
         """Stop the actuator on the specified channel."""
         self._actuator.write(f"L:{channel}")
-        logger.info(f"Actuator {channel} stopped")
         self.wait_for_ready(channel)
 
     def read_state(self, channel):
@@ -131,4 +128,5 @@ class RMCVISADriver:
         return state
 
     def close(self):
+        """Closes the connection to the actuator."""
         pyvisa.ResourceManager().close()
