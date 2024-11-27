@@ -1,5 +1,5 @@
-import pyvisa
 import time
+import pyvisa
 from pymodaq.utils.logger import set_logger, get_module_name
 
 logger = set_logger(get_module_name(__file__))
@@ -52,7 +52,7 @@ class SBIS26VISADriver:
             channel (int): Channel of the stage.
         Returns (str): Status of the stage.
         """
-        self._stage.query(f"SRQ:D,{channel}") 
+        self._stage.query(f"SRQ:D,{channel}")
         status_str = self._stage.query(f"SRQ:D,{channel}")
         key = status_str.split(",")[-1]
         return key
@@ -63,7 +63,7 @@ class SBIS26VISADriver:
             channel (int): Channel of the stage.
         Returns (float): Position of the stage.
         """
-        if (self.position[channel -1] is None): 
+        if (self.position[channel -1] is None):
             return logger.error("Position is None")
         return self.position[channel - 1]
 
@@ -100,9 +100,9 @@ class SBIS26VISADriver:
             accel_t (int): Acceleration time of the stage.
             channel (int): Channel of the stage.
         """
-        self.speed_ini = speed_ini
-        self.speed_fin = speed_fin
-        self.accel_t = accel_t
+        self.speed_ini[channel - 1] = speed_ini
+        self.speed_fin[channel - 1] = speed_fin
+        self.accel_t[channel - 1] = accel_t
         if 0 < speed_ini <= speed_fin and accel_t > 0:
             self._stage.write(f"D:D,{channel},{speed_ini},{speed_fin},{accel_t}")
         else:
@@ -123,7 +123,7 @@ class SBIS26VISADriver:
 
         time0 = time.time()
         while self.status(channel) != "R":
-            logger.debug(self.status(channel)) 
+            logger.debug(self.status(channel))
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.error("Timeout")
@@ -138,4 +138,4 @@ class SBIS26VISADriver:
 
     def close(self):
         """Closes the stage."""
-        self.rm.close()
+        pyvisa.ResourceManager().close()
