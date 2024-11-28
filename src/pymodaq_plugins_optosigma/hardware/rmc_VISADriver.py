@@ -53,7 +53,7 @@ class RMCVISADriver:
             rm = pyvisa.ResourceManager()
             self._actuator = rm.open_resource(self.rsrc_name)
             self._actuator.write_termination = "\r\n"
-            self._actuator.read_termination = "\r\n"
+            # self._actuator.read_termination = "\r\n"
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
 
