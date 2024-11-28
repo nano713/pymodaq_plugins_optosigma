@@ -15,7 +15,7 @@ class AxisError(Exception):
         self.message = self.MESSAGES[error_code]
 
 class GSC:
-    default_units = ''
+    default_units = ' '
 
     def __init__(self, rsrc_name):
         self._actuator = None
