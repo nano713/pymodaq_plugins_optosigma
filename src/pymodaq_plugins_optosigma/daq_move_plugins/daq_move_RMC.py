@@ -9,7 +9,7 @@ from pymodaq.utils import logger
 
 class DAQ_Move_RMC(DAQ_Move_base):
     """ RMC-02C 2 Axis Controller plugin class
-
+    
     This object inherits all functionalities to communicate with PyMoDAQ’s DAQ_Move module through inheritance via
     DAQ_Move_base. It makes a bridge between the DAQ_Move module and the Python wrapper of a particular instrument.
 
@@ -18,7 +18,7 @@ class DAQ_Move_RMC(DAQ_Move_base):
     controller: object
         The particular object that allow the communication with the hardware, in general a python wrapper around the
          hardware library.
-
+         
     """
     is_multiaxes = True
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y": 2}
@@ -42,7 +42,7 @@ class DAQ_Move_RMC(DAQ_Move_base):
         float: The position obtained after scaling conversion.
         """
         pos = DataActuator(
-            data=self.controller.get_position(self.axis_value))
+            data=self.controller.get_position(self.axis_value)) 
         pos = self.get_position_with_scaling(pos)
         return pos
 
@@ -126,12 +126,10 @@ class DAQ_Move_RMC(DAQ_Move_base):
         """Call the reference method of the controller"""
 
         self.controller.home(self.axis_value)
-
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
 
         self.controller.stop(self.axis_value)
-
 
 if __name__ == '__main__':
     main(__file__)
