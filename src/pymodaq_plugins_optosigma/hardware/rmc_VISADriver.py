@@ -59,7 +59,7 @@ class RMCVISADriver:
 
     def set_mode(self):
         """Set the actuator to remote mode."""
-        self._actuator.write("P:1")
+        self._actuator.write("P:1") 
 
     def move(self, position, channel):
         """Move the actuator to the specified position on the given channel.
@@ -94,7 +94,7 @@ class RMCVISADriver:
             self._actuator.write(f"M:{channel}+U{position}")
         else:
             self._actuator.write(f"M:{channel}-U{abs(position)}")
-        self._actuator.write("G:")
+        self._actuator.write("G:") 
         self.wait_for_ready(channel)
         self.position[channel - 1] = position + self.position[channel - 1]
 
