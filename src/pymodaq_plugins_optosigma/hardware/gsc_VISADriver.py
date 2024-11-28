@@ -20,14 +20,14 @@ class GSC:
     def __init__(self, rsrc_name):
         self._actuator = None
         self.rsrc_name = rsrc_name
-        self.position = [0, 0]
+        self.position = [0, 0] 
         self.speed_ini = [0, 0]
         self.speed_fin = [0, 0]
         self.accel_t = [0, 0]
 
     def connect(self):
         rm = pyvisa.ResourceManager()
-        self._actuator = rm.open_resource(self.rsrc_name)
+        self._actuator = rm.open_resource(self.rsrc_name) 
         self._actuator.write_termination = "\r\n"
         self._actuator.read_termination = "\r\n"
         self._actuator.baud_rate = 9600
@@ -75,7 +75,7 @@ class GSC:
             self.speed_ini[channel - 1] = speed_ini
             self.speed_fin[channel - 1] = speed_fin
             self.accel_t[channel - 1] = accel_t
-        else:
+        else: 
             logger.error("Speed, acceleration, and deceleration must be greater than 0")
 
     def get_speed(self, channel):
@@ -97,7 +97,7 @@ class GSC:
 
     def read_state(self):
         """Read the state of the specified channel."""
-        state = self._actuator.query(f"!:")
+        state = self._actuator.query(f"!:") 
         return state
 
     def wait_for_ready(self):
