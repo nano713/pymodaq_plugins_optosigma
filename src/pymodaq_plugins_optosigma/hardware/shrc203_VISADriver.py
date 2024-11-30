@@ -1,3 +1,4 @@
+import numpy as np
 import time
 import pyvisa
 from pymodaq.utils.logger import set_logger, get_module_name
@@ -56,12 +57,12 @@ class SHRC203VISADriver:
         """
         self._instr = None
         self.rsrc_name = rsrc_name
-        self.unit = ""
-        self.loop = [None, None, None]
-        self.position = [None, None, None]
-        self.speed_ini = [None, None, None]
-        self.speed_fin = [None, None, None]
-        self.accel_t = [None, None, None]
+        self.unit = self.default_units
+        self.loop = [-1, -1, -1]
+        self.position = [0, 0, 0]
+        self.speed_ini = [-1, -1, -1]
+        self.speed_fin = [-1, -1, -1]
+        self.accel_t = [-1, -1, -1]
 
     def set_unit(self, unit: str):
         """
@@ -103,7 +104,7 @@ class SHRC203VISADriver:
             self._instr.data_bits = 8 
             self._instr.parity = pyvisa.constants.Parity.none 
             self._instr.write_termination = "\r\n" 
-            self._instr.read_termination = "\r\n" 
+            self._instr.read_termination = "\r\n"
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
     
@@ -168,7 +169,7 @@ class SHRC203VISADriver:
             if time0 - time.time() >= 5:
                 logger.error("Timeout")
                 return self.speed_ini[channel-1], self.speed_fin[channel-1], self.accel_t[channel-1]
-                
+
         self.speed_ini[channel-1] = speed.split("S")[1].split("F")[0]
         self.speed_fin[channel-1] = speed.split("F")[1].split("R")[0]
         self.accel_t[channel-1]= speed.split("R")[1]
@@ -177,18 +178,20 @@ class SHRC203VISADriver:
     def move_relative(self, position, channel):
         """Move the stage to a relative position."""
         if position >= 0:
-            self._instr.write(f"M:{channel}" + f"+{self.unit}{position}")
+            self._instr.write(f"M:{channel}+{self.unit}{position}")
         else:
-            self._instr.write(f"M:{channel}" + f"-{self.unit}{abs(position)}")  
+            self._instr.write(f"M:{channel}-{self.unit}{abs(position)}")
         self._instr.write("G:")
         self.wait_for_ready(channel)
+        self.position[channel - 1] = self.position[channel - 1] + position
 
     def home(self, channel):
         """Move the stage to the home position."""
         self._instr.write(f"H:{channel}")
         self.wait_for_ready(channel)
+        self.position[channel - 1] = 0
 
-    
+
     def wait_for_ready(self, channel):
         """Wait for the stage to stop moving."""
         time0 = time.time()
@@ -209,9 +212,9 @@ class SHRC203VISADriver:
         """Read the state if the stage is moving or not.
         B: Busy
         R: Ready"""
-        state = self._instr.query(f"!:{channel}S") 
+        state = self._instr.query(f"!:{channel}S")
         return state
 
     def close(self):
         """Close the connection with the controller."""
-        self.rm.close()
+        pyvisa.ResourceManager().close()
