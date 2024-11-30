@@ -112,7 +112,7 @@ class RMCVISADriver:
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.error("Timeout")
-                self.check_error(channel)
+                self.check_error()
                 break
             time.sleep(0.2)
 
