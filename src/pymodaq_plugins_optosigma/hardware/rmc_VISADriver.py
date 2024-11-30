@@ -22,9 +22,9 @@ class RMCVISADriver:
     def __init__(self, rsrc_name):
         self._actuator = None
         self.rsrc_name = rsrc_name
-        self.position = [None, None]
-        self.speed = [None, None]
-    
+        self.position = [-1, -1]
+        self.speed = [-1, -1]
+
     def check_error(self):
         """Check for errors."""
         error = self._actuator.query("Q:")
@@ -37,11 +37,11 @@ class RMCVISADriver:
         """Set the speed of the specified channel."""
         if 0 < speed <= 8:
             speed = self._actuator.write(f"D:{channel}J{speed}")
-            self.speed[channel-1] = speed
-        else: 
+            self.speed[channel - 1] = speed
+        else:
             Exception("Invalid speed values")
 
-    def get_speed(self, channel): 
+    def get_speed(self, channel):
         """Returns the speed of the specified channel."""
         if self.speed[channel - 1] is None:
             return logger.error("Speed is None")
@@ -53,7 +53,7 @@ class RMCVISADriver:
             rm = pyvisa.ResourceManager()
             self._actuator = rm.open_resource(self.rsrc_name)
             self._actuator.write_termination = "\r\n"
-            # self._actuator.read_termination = "\r\n"
+            self._actuator.read_termination = "\r\n"
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
 
@@ -94,7 +94,7 @@ class RMCVISADriver:
             self._actuator.write(f"M:{channel}+U{position}")
         else:
             self._actuator.write(f"M:{channel}-U{abs(position)}")
-        self._actuator.write("G:") 
+        self._actuator.write("G:")
         self.wait_for_ready(channel)
         self.position[channel - 1] = position + self.position[channel - 1]
 
