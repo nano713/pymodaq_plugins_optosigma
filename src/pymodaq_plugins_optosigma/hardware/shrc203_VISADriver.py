@@ -56,12 +56,12 @@ class SHRC203VISADriver:
         """
         self._instr = None
         self.rsrc_name = rsrc_name
-        self.unit = ""
-        self.loop = [None, None, None]
-        self.position = [None, None, None]
-        self.speed_ini = [None, None, None]
-        self.speed_fin = [None, None, None]
-        self.accel_t = [None, None, None]
+        self.unit = self.default_units
+        self.loop = [-1, -1, -1]
+        self.position = [0, 0, 0]
+        self.speed_ini = [-1, -1, -1]
+        self.speed_fin = [-1, -1, -1]
+        self.accel_t = [-1, -1, -1]
 
     def set_unit(self, unit: str):
         """
@@ -177,18 +177,20 @@ class SHRC203VISADriver:
     def move_relative(self, position, channel):
         """Move the stage to a relative position."""
         if position >= 0:
-            self._instr.write(f"M:{channel}" + f"+{self.unit}{position}")
+            self._instr.write(f"M:{channel}+{self.unit}{position}")
         else:
-            self._instr.write(f"M:{channel}" + f"-{self.unit}{abs(position)}")  
+            self._instr.write(f"M:{channel}-{self.unit}{abs(position)}")
         self._instr.write("G:")
         self.wait_for_ready(channel)
+        self.position[channel - 1] = self.position[channel - 1] + position
 
     def home(self, channel):
         """Move the stage to the home position."""
         self._instr.write(f"H:{channel}")
         self.wait_for_ready(channel)
+        self.position[channel - 1] = 0
 
-    
+
     def wait_for_ready(self, channel):
         """Wait for the stage to stop moving."""
         time0 = time.time()
