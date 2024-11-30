@@ -25,7 +25,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
     is_multiaxes = True 
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y": 2, "Z": 3}
     _controller_units: Union[str, List[str]] = SHRC203.default_units 
-    _epsilon: Union[float, List[float]] = (0.1)
+    _epsilon: Union[float, List[float]] = 0.040 # < 50 nm
     data_actuator_type = (DataActuatorType.DataActuator) 
 
     params = [
