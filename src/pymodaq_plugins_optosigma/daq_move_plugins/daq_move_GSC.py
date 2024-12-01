@@ -25,7 +25,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
     _controller_units: Union[
         str, List[str]] = GSC.default_units  
     _epsilon: Union[
-        float, List[float]] = 1 
+        float, List[float]] = 0.9
     data_actuator_type = DataActuatorType.DataActuator  
 
     params = [
