@@ -1,10 +1,11 @@
 from typing import Union, List, Dict
 
 from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType, \
-    DataActuator
-from pymodaq.utils.daq_utils import ThreadCommand
+    DataActuator  # common set of parameters for all actuators
+from pymodaq.utils.daq_utils import ThreadCommand  # object used to send info back to the main thread
 from pymodaq.utils.parameter import Parameter
-from pymodaq_plugins_optosigma.hardware.gsc_VISADriver import GSC
+from pymodaq_plugins_optosigma.hardware.gsc_VISADriver import GSC # DK import the main class (the name was wrong)
+
 
 class DAQ_Move_GSC(DAQ_Move_base):
     """ Instrument plugin class for an actuator.
@@ -17,15 +18,15 @@ class DAQ_Move_GSC(DAQ_Move_base):
     controller: object
         The particular object that allow the communication with the hardware, in general a python wrapper around the
          hardware library.
-
+         
     """
-    is_multiaxes = True
-    _axis_names: Union[List[str], Dict[str, int]] = {'Axis1':1, 'Axis2':2}
+    is_multiaxes = True 
+    _axis_names: Union[List[str], Dict[str, int]] = {'Axis1':1, 'Axis2':2} 
     _controller_units: Union[
-        str, List[str]] = GSC.default_units
+        str, List[str]] = GSC.default_units  
     _epsilon: Union[
-        float, List[float]] = 1
-    data_actuator_type = DataActuatorType.DataActuator
+        float, List[float]] = 0.9
+    data_actuator_type = DataActuatorType.DataActuator  
 
     params = [
                  {"title": "Instrument Address", "name": "visa_name", "type": "str", "value": "ASRL11::INSTR"},
@@ -44,13 +45,13 @@ class DAQ_Move_GSC(DAQ_Move_base):
         -------
         float: The position obtained after scaling conversion.
         """
-        pos = DataActuator(data=self.controller.get_position(self.axis_value))
+        pos = DataActuator(data=self.controller.get_position(self.axis_value))  
         pos = self.get_position_with_scaling(pos)
         return pos
 
     def close(self):
         """Terminate the communication protocol"""
-        self.controller.close()
+        self.controller.close() 
 
     def commit_settings(self, param: Parameter):
         """Apply the consequences of a change of value in the detector settings
@@ -87,12 +88,12 @@ class DAQ_Move_GSC(DAQ_Move_base):
 
         self.ini_stage_init(slave_controller=controller)
 
-        if self.is_master:
-            self.controller = GSC(self.settings["visa_name"])
+        if self.is_master: 
+            self.controller = GSC(self.settings["visa_name"]) 
             self.controller.connect()
 
-        info = "GSC Actuator initialized"
-        initialized = True
+        info = "GSC Actuator initialized" 
+        initialized = True 
         return info, initialized
 
     def move_abs(self, value: DataActuator):
@@ -103,11 +104,11 @@ class DAQ_Move_GSC(DAQ_Move_base):
         value: (float) value of the absolute target positioning
         """
 
-        value = self.check_bound(value)
+        value = self.check_bound(value) 
         self.target_value = value
-        value = self.set_position_with_scaling(value)
+        value = self.set_position_with_scaling(value)  
 
-        self.controller.move(int(value.value()), self.axis_value)
+        self.controller.move(int(value.value()), self.axis_value) 
 
     def move_rel(self, value: DataActuator):
         """ Move the actuator to the relative target actuator value defined by value
@@ -131,7 +132,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
 
-        self.controller.stop(self.axis_value)
+        self.controller.stop(self.axis_value) 
         self.emit_status(ThreadCommand('Update_Status', ['GSC Actuator has stopped']))
 
 
