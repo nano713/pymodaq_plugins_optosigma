@@ -27,12 +27,8 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
     is_multiaxes = True
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y": 2, "Z": 3}
     _controller_units: Union[str, List[str]] = " "
-    _epsilon: Union[float, List[float]] = (
-        1
-    )
-    data_actuator_type = (
-        DataActuatorType.DataActuator
-    )
+    _epsilon: Union[float, List[float]] = (0.9)
+    data_actuator_type = (DataActuatorType.DataActuator)
 
     params = [
                  {
