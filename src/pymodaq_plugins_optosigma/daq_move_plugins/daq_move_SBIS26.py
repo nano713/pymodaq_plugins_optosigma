@@ -1,10 +1,14 @@
 from typing import Union, List, Dict
 import logging
-from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType, DataActuator 
-from pymodaq.utils.daq_utils import ThreadCommand 
+from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_parameters_fun, main, DataActuatorType, \
+    DataActuator
+from pymodaq.utils.daq_utils import ThreadCommand
 from pymodaq.utils.parameter import Parameter
 from pymodaq_plugins_optosigma.hardware.sbis26_VISADriver import SBIS26VISADriver
+from pymodaq_plugins_optosigma.hardware.sbis26_VISADriver import SBIS26VISADriver
+
 logger = logging.getLogger(__name__)
+
 
 class DAQ_Move_SBIS26(DAQ_Move_base):
     """ SBIS26 Driver Integrated Motorized Stage plugin class
@@ -19,28 +23,24 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
          hardware library.
 
     """
-    
-    is_multiaxes = True 
+
+    is_multiaxes = True
     _axis_names: Union[List[str], Dict[str, int]] = {"X": 1, "Y": 2, "Z": 3}
-    _controller_units: Union[str, List[str]] = ""
-    _epsilon: Union[float, List[float]] = (
-        0.1  
-    )
-    data_actuator_type = (
-        DataActuatorType.DataActuator
-    ) 
+    _controller_units: Union[str, List[str]] = " "
+    _epsilon: Union[float, List[float]] = (0.9)
+    data_actuator_type = (DataActuatorType.DataActuator)
 
     params = [
-        {
-            "title": "Instrument Address",
-            "name": "visa_name",
-            "type": "str",
-            "value": "ASRL4::INSTR",
-        },
-        {"title": "Speed Initial:", "name": "speed_ini", "type": "float", "value": 1000},
-        {"title": "Acceleration Time:", "name": "accel_t", "type": "float", "value": 100},
-        {"title": "Speed Final:", "name": "speed_fin", "type": "float", "value": 1000},
-    ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
+                 {
+                     "title": "Instrument Address",
+                     "name": "visa_name",
+                     "type": "str",
+                     "value": "ASRL4::INSTR",
+                 },
+                 {"title": "Speed Initial:", "name": "speed_ini", "type": "float", "value": 1000},
+                 {"title": "Acceleration Time:", "name": "accel_t", "type": "float", "value": 100},
+                 {"title": "Speed Final:", "name": "speed_fin", "type": "float", "value": 1000},
+             ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
         self.controller: SBIS26VISADriver = None
@@ -52,11 +52,10 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         -------
         float: The position obtained after scaling conversion.
         """
-      
-        pos = DataActuator(data=self.controller.get_position(self.axis_value)) 
+
+        pos = DataActuator(data=self.controller.get_position(self.axis_value))
         pos = self.get_position_with_scaling(pos)
         return pos
-
 
     def close(self):
         """Terminate the communication protocol"""
@@ -71,7 +70,8 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
             A given parameter (within detector_settings) whose value has been changed by the user
         """
         if param.name() == "speed_ini" or param.name() == "speed_fin" or param.name() == "accel_t":
-           self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"], self.settings["accel_t"], self.axis_value)
+            self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"], self.settings["accel_t"],
+                                      self.axis_value)
         else:
             pass
         
@@ -92,12 +92,12 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         """
 
         self.ini_stage_init(slave_controller=controller)
-        if self.is_master: 
+        if self.is_master:
             self.controller = SBIS26VISADriver(self.settings["visa_name"])
             self.controller.connect()
-        else: 
+        else:
             logger.error("This plugin is not initialized")
-        
+
         info = "SBIS26 is initialized"
         initialized = True
         return info, initialized
@@ -132,11 +132,12 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
     def move_home(self):
         """Call the reference method of the controller"""
         self.controller.home(self.axis_value)
- 
+
     def stop_motion(self):
         """Stop the actuator and emits move_done signal"""
         self.controller.stop()
         self.emit_status(ThreadCommand('Update_Status', ['SBIS26 has stopped moving']))
+
 
 if __name__ == '__main__':
     main(__file__)
