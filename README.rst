@@ -1,5 +1,5 @@
 pymodaq_plugins_optosigma
-########################
+#########################
 
 .. the following must be adapted to your developed package, links to pypi, github  description...
 
