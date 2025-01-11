@@ -69,7 +69,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
             self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"],
                                       self.settings["acceleration_time"], self.axis_value)
         else:
-            raise NotImplementedError(f"Parameter {param.name()} not implemented")
+            pass
 
     def ini_stage(self, controller=None):
         """Actuator communication initialization
