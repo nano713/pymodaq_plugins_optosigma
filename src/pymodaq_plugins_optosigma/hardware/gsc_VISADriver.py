@@ -38,6 +38,13 @@ class GSC:
             logger.info(f"Connection to {self._actuator} successful")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
+    
+    def convert_units(self, units, value):
+        if units == "P":
+            return value * 1000
+        elif units == "mm": 
+            return (1/value) * 1000
+
 
     def move(self, position, channel):
         """Move the specified channel to the position."""
