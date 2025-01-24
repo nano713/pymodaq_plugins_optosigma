@@ -6,6 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 class AxisError(Exception):
+        # COEF = 10 (pulse/mm)
+
     MESSAGES = {
         "X": "Command or parameter errors",
         "K": "Normal state",
@@ -27,6 +29,7 @@ class GSC:
         self.speed_ini = [0, 0]
         self.speed_fin = [0, 0]
         self.accel_t = [0, 0]
+        
 
     def connect(self):
         try:
@@ -38,13 +41,19 @@ class GSC:
             logger.info(f"Connection to {self._actuator} successful")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
+        
     
-    def convert_units(self, units, value):
-        if units == "P":
-            return value * 1000
-        elif units == "mm": 
-            return (1/value) * 1000
-
+    def convert_units(self, units, value, coeff):
+        if units == " ":
+            return (value * coeff)
+        elif units == "um": 
+            return value/(coeff)
+    
+    def set_unit(self, unit): 
+        if unit == "pulse": 
+            return " "
+        else: 
+            return unit
 
     def move(self, position, channel):
         """Move the specified channel to the position."""
