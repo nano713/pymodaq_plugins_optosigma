@@ -33,6 +33,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
                  {"title": "Speed_ini", "name": "speed_ini", "type": "int", "value": 10000},
                  {"title": "Speed_fin", "name": "speed_fin", "type": "int", "value": 10000},
                  {"title": "Acceleration time", "name": "acceleration_time", "type": "int", "value": 100},
+                 {"title": "Units", "name": "unit", "type": "list", "value": "um", "values": ["um", "P"]},
              ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
@@ -68,8 +69,8 @@ class DAQ_Move_GSC(DAQ_Move_base):
         if param.name() == "speed_ini" or param.name() == "speed_fin" or param.name() == "acceleration_time":
             self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"],
                                       self.settings["acceleration_time"], self.axis_value)
-        else:
-            pass
+        elif param.name() == "unit":
+            self.settings.child('unit').setValue(param.value()) 
 
     def ini_stage(self, controller=None):
         """Actuator communication initialization
@@ -106,7 +107,9 @@ class DAQ_Move_GSC(DAQ_Move_base):
 
         value = self.check_bound(value) 
         self.target_value = value
-        value = self.set_position_with_scaling(value)  
+        value = self.set_position_with_scaling(value)
+
+        value = self.controller.convert_units(self.settings.child('unit').value(), value)  
 
         self.controller.move(int(value.value()), self.axis_value) 
 
@@ -120,6 +123,8 @@ class DAQ_Move_GSC(DAQ_Move_base):
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
+
+        value = self.controller.convert_units(self.settings.child('unit').value(), value)
 
         self.controller.move_rel(int(value.value()), self.axis_value)
 
