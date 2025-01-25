@@ -33,7 +33,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
                  {"title": "Speed_ini", "name": "speed_ini", "type": "int", "value": 10000},
                  {"title": "Speed_fin", "name": "speed_fin", "type": "int", "value": 10000},
                  {"title": "Acceleration time", "name": "acceleration_time", "type": "int", "value": 100},
-                 {"title": "Units", "name": "unit", "type": "list", "value": "um", "values": ["um", "P"]},
+                 {"title": "Units", "name": "unit", "type": "list", "value": _controller_units, "values": ["um", " "]},
              ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
