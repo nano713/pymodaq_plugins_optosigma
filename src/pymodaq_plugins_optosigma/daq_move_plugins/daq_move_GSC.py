@@ -23,17 +23,19 @@ class DAQ_Move_GSC(DAQ_Move_base):
     is_multiaxes = True 
     _axis_names: Union[List[str], Dict[str, int]] = {'Axis1':1, 'Axis2':2} 
     _controller_units: Union[
-        str, List[str]] = GSC.default_units  
+        str, List[str]] = " "
     _epsilon: Union[
         float, List[float]] = 0.9
     data_actuator_type = DataActuatorType.DataActuator  
 
     params = [
-                 {"title": "Instrument Address", "name": "visa_name", "type": "str", "value": "ASRL11::INSTR"},
+                 {"title": "Instrument Address", "name": "visa_name", "type": "str", "value": "ASRL4::INSTR"},
                  {"title": "Speed_ini", "name": "speed_ini", "type": "int", "value": 10000},
                  {"title": "Speed_fin", "name": "speed_fin", "type": "int", "value": 10000},
                  {"title": "Acceleration time", "name": "acceleration_time", "type": "int", "value": 100},
-                 {"title": "Units", "name": "unit", "type": "list", "value": _controller_units, "values": ["um", " "]},
+                 {"title": "Unit", "name": "unit", "type": "list", "limits": ["um", "pulse"]},
+                 {"title": "Coeff", "name": "coeff", "type": "float", "value": 2.0},  # (pulse/um)
+                 #{'title': 'Readout Modes:', 'name': 'readout'{'title': 'Units', 'name': 'units', 'type': 'list', 'limits': ['mm','rad', 'degree']  }
              ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
@@ -69,8 +71,10 @@ class DAQ_Move_GSC(DAQ_Move_base):
         if param.name() == "speed_ini" or param.name() == "speed_fin" or param.name() == "acceleration_time":
             self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"],
                                       self.settings["acceleration_time"], self.axis_value)
-        elif param.name() == "unit":
-            self.settings.child('unit').setValue(param.value()) 
+        if param.name() == "unit":
+            self.axis_unit = self.controller.set_unit(self.settings['unit'])
+            
+         
 
     def ini_stage(self, controller=None):
         """Actuator communication initialization
@@ -102,15 +106,17 @@ class DAQ_Move_GSC(DAQ_Move_base):
 
         Parameters
         ----------
-        value: (float) value of the absolute target positioning
+        value: (DataActuator) value of the absolute target positioning
         """
 
         value = self.check_bound(value) 
         self.target_value = value
+        value = self.controller.convert_units(self.settings.child('unit').value(), value, self.settings.child('coeff').value())  
+        # value should be DataActuator type
+
         value = self.set_position_with_scaling(value)
 
-        value = self.controller.convert_units(self.settings.child('unit').value(), value)  
-
+      
         self.controller.move(int(value.value()), self.axis_value) 
 
     def move_rel(self, value: DataActuator):
@@ -122,9 +128,8 @@ class DAQ_Move_GSC(DAQ_Move_base):
         """
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
+        value = self.controller.convert_units(self.settings.child('unit').value(), value, self.settings.child('coeff').value())
         value = self.set_position_relative_with_scaling(value)
-
-        value = self.controller.convert_units(self.settings.child('unit').value(), value)
 
         self.controller.move_rel(int(value.value()), self.axis_value)
 
