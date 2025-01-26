@@ -44,8 +44,10 @@ class GSC:
         
     
     def convert_units(self, units, value, coeff):
-        if units == " ":
-            return (value * coeff)
+        # When you use "um", you need to send  a command in pulse unit.
+        # STOP DELETING CODE WITHOUT AMELIE'S PERMISSION
+        if units == " " or units == "pulse":
+            return value
         elif units == "um": 
             return value/(coeff)
     

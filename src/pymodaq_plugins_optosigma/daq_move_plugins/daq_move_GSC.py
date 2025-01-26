@@ -33,7 +33,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
                  {"title": "Speed_ini", "name": "speed_ini", "type": "int", "value": 10000},
                  {"title": "Speed_fin", "name": "speed_fin", "type": "int", "value": 10000},
                  {"title": "Acceleration time", "name": "acceleration_time", "type": "int", "value": 100},
-                 {"title": "Unit", "name": "unit", "type": "list", "limits": ["um", "pulse"]},
+                 {"title": "Unit", "name": "unit", "type": "list", "limits": ["pulse", "um"], "value": " "},
                  {"title": "Coeff", "name": "coeff", "type": "float", "value": 2.0},  # (pulse/um)
                  #{'title': 'Readout Modes:', 'name': 'readout'{'title': 'Units', 'name': 'units', 'type': 'list', 'limits': ['mm','rad', 'degree']  }
              ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
@@ -113,10 +113,13 @@ class DAQ_Move_GSC(DAQ_Move_base):
         self.target_value = value
 
         # Rename value because value should be of type DataActuator
-        value = self.controller.convert_units(self.settings.child('unit').value(), value.value(), self.settings.child('coeff').value()) # DK - fix convert_units 
+        value = self.controller.convert_units(self.settings.child('unit').value(), value.value(), self.settings.child('coeff').value())
+        
+        print("value = self.controller.convert_units(self.settings.child('unit').value(), value.value(), self.settings.child('coeff').value())", type(value))
+        print("self.settings.child('unit').value()", type(self.settings.child('unit').value()))
 
         # value should be DataActuator type
-        value = DataActuator(data=value.value(), units=self.settings.child('unit').value()) # use units (unit?) attribute
+        value = DataActuator(data=value) # use units (unit?) attribute
 
         value = self.set_position_with_scaling(value)
 
