@@ -111,9 +111,12 @@ class DAQ_Move_GSC(DAQ_Move_base):
 
         value = self.check_bound(value) 
         self.target_value = value
-        value = self.controller.convert_units(self.settings.child('unit').value(), value, self.settings.child('coeff').value())  
+
+        # Rename value because value should be of type DataActuator
+        value = self.controller.convert_units(self.settings.child('unit').value(), value.value(), self.settings.child('coeff').value()) # DK - fix convert_units 
+
         # value should be DataActuator type
-        value = DataActuator(data=value)
+        value = DataActuator(data=value.value(), units=self.settings.child('unit').value()) # use units (unit?) attribute
 
         value = self.set_position_with_scaling(value)
 
@@ -128,9 +131,9 @@ class DAQ_Move_GSC(DAQ_Move_base):
         """
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
-        value = self.controller.convert_units(self.settings.child('unit').value(), value, self.settings.child('coeff').value())
+        value = self.controller.convert_units(self.settings.child('unit').value(), value.value(), self.settings.child('coeff').value())
 
-        value = DataActuator(data=value)
+        value = DataActuator(data=value) # use units (unit?) attribute
         
         value = self.set_position_relative_with_scaling(value)
 
