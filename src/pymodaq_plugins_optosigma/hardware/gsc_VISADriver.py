@@ -48,23 +48,32 @@ class GSC:
         # STOP DELETING CODE WITHOUT AMELIE'S PERMISSION
         if units == " " or units == "pulse":
             return value
-        elif units == "um": 
-            return value/(coeff)
+        elif units == "um":
+            return value*(coeff) # (pulse)
     
     def set_unit(self, unit): 
         if unit == "pulse": 
             return " "
         else: 
             return unit
+    def get_unit_position(self, unit, channel): 
+        if unit == 'um': 
+            self.position[channel-1] = (self.position[channel-1])/2 
+        else: 
+            pass
 
     def move(self, position, channel):
         """Move the specified channel to the position."""
+
+        print(position, "pulses in move method")
+
         if position >= 0:
             self._actuator.write(f"A:{channel}+P{position}")
         else:
             self._actuator.write(f"A:{channel}-P{abs(position)}")
         self._actuator.write("G:")
         self.wait_for_ready()
+        
         self.position[channel - 1] = position
 
     def move_rel(self, position, channel):
