@@ -124,6 +124,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
         value = self.set_position_with_scaling(value)
 
         self.controller.move(int(value.value()), self.axis_value) 
+        self.controller.get_unit_position(self.settings['unit'], self.axis_value)
 
     def move_rel(self, value: DataActuator):
         """ Move the actuator to the relative target actuator value defined by value
@@ -141,6 +142,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
         value = self.set_position_relative_with_scaling(value)
 
         self.controller.move_rel(int(value.value()), self.axis_value)
+        self.controller.get_unit_position(self.settings['unit'], self.axis_value)
 
     def move_home(self):
         """Call the reference method of the controller"""
