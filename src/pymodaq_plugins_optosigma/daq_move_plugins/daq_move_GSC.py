@@ -47,11 +47,6 @@ class DAQ_Move_GSC(DAQ_Move_base):
         -------
         float: The position obtained after scaling conversion.
         """
-        if self.settings['unit'] == "um":
-            
-            xxx
-        elif self.settings['unit'] == "pulse":
-            yyy
         pos = DataActuator(data=self.controller.get_position(self.axis_value))  
         pos = self.get_position_with_scaling(pos)
         return pos
