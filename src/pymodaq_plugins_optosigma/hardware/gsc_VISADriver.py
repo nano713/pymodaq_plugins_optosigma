@@ -42,26 +42,27 @@ class GSC:
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
         
-    
+#### Below are methods based on updating the GUI units 
     def convert_units(self, units, value, coeff):
-        # When you use "um", you need to send  a command in pulse unit.
-        # STOP DELETING CODE WITHOUT AMELIE'S PERMISSION
+        """Convert value based on the units. Coefficient is taken through the GUI"""
         if units == " " or units == "pulse":
             return value
         elif units == "um":
-            return value*(coeff) # (pulse)
+            return value*(coeff) 
     
     def set_unit(self, unit): 
+        """Set the unit pulse based on the GUI needed"""
         if unit == "pulse": 
             return " "
         else: 
             return unit
     def get_unit_position(self, unit, channel): 
+        """Gets the actuator position based on the unit."""
         if unit == 'um': 
             self.position[channel-1] = (self.position[channel-1])/2 
         else: 
             pass
-
+### End of the block of code that updates the unit of GUI
     def move(self, position, channel):
         """Move the specified channel to the position."""
 
