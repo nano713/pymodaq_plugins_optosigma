@@ -35,11 +35,13 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
                      "title": "Instrument Address",
                      "name": "visa_name",
                      "type": "str",
-                     "value": "ASRL4::INSTR",
+                     "value": "ASRL6::INSTR",
                  },
                  {"title": "Speed Initial:", "name": "speed_ini", "type": "float", "value": 1000},
                  {"title": "Acceleration Time:", "name": "accel_t", "type": "float", "value": 100},
                  {"title": "Speed Final:", "name": "speed_fin", "type": "float", "value": 1000},
+                 {'title': 'Unit', 'name': 'unit', 'type': 'list', "limits": ["pulse", "um"], "value": " " },
+                 {'title':'Coeff', 'name': 'coeff', 'type': 'float', 'value': 2.0}
              ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
@@ -72,8 +74,9 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         if param.name() == "speed_ini" or param.name() == "speed_fin" or param.name() == "accel_t":
             self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"], self.settings["accel_t"],
                                       self.axis_value)
-        else:
-            pass
+        elif param.name() == 'unit': 
+            self.axis_unit = self.controller.set_unit(self.settings['unit'])
+
         
 
     def ini_stage(self, controller=None):
@@ -111,10 +114,13 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         """
         value = self.check_bound(value)
         self.target_value = value
+        value = self.controller.convert_units(self.settings['unit'], value.value(), self.settings['coeff'])
+        value = DataActuator(data= value)
 
         value = self.set_position_with_scaling(value)
 
         self.controller.move(value.value(), self.axis_value)
+        self.controller.convert_unit_position(self.settings['unit'], self.axis_value)
 
     def move_rel(self, value: DataActuator):
         """ Move the actuator to the relative target actuator value defined by value
@@ -125,9 +131,13 @@ class DAQ_Move_SBIS26(DAQ_Move_base):
         """
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
+        value = self.controller.convert_units(self.settings['unit'], value.value(), self.settings['coeff'])
+        value = DataActuator(data= value)
+   
         value = self.set_position_relative_with_scaling(value)
 
         self.controller.move_relative(value.value(), self.axis_value)
+        self.controller.convert_unit_position(self.settings['unit'], self.axis_value)
 
     def move_home(self):
         """Call the reference method of the controller"""

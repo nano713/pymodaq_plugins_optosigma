@@ -22,7 +22,26 @@ class SBIS26VISADriver:
         self._stage.baud_rate = 38400
         self._stage.read_termination = '\r\n'
         self._stage.write("#CONNECT")
-
+########
+    def convert_units(self, unit, value, Coeff): 
+        if unit == 'um': 
+            value = value * Coeff
+            return value
+        elif unit == 'pulse' or unit == ' ': 
+            return value
+    
+    def set_unit(self, unit): 
+        if unit == 'pulse': 
+            return ' '
+        else:
+            return unit
+    
+    def convert_unit_position(self, unit, channel): 
+        if unit == 'um': 
+            self.position[channel-1] = (self.position[channel-1])/2 
+        else: 
+            pass
+#######
     def check_error(self, channel):
         """Gets the status of the stage.
         Args:

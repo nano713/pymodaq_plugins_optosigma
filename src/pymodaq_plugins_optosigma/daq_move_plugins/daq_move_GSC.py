@@ -70,7 +70,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
         if param.name() == "speed_ini" or param.name() == "speed_fin" or param.name() == "acceleration_time":
             self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"],
                                       self.settings["acceleration_time"], self.axis_value)
-        if param.name() == "unit":
+        elif param.name() == "unit": # DK - if statement?
             self.axis_unit = self.controller.set_unit(self.settings['unit'])      
 
     def ini_stage(self, controller=None):
