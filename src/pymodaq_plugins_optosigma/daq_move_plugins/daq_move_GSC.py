@@ -4,7 +4,7 @@ from pymodaq.control_modules.move_utility_classes import DAQ_Move_base, comon_pa
     DataActuator  # common set of parameters for all actuators
 from pymodaq.utils.daq_utils import ThreadCommand  # object used to send info back to the main thread
 from pymodaq.utils.parameter import Parameter
-from pymodaq_plugins_optosigma.hardware.gsc_VISADriver import GSC # DK import the main class (the name was wrong)
+from pymodaq_plugins_optosigma.hardware.gsc_VISADriver import GSC 
 
 
 class DAQ_Move_GSC(DAQ_Move_base):
@@ -34,8 +34,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
                  {"title": "Speed_fin", "name": "speed_fin", "type": "int", "value": 10000},
                  {"title": "Acceleration time", "name": "acceleration_time", "type": "int", "value": 100},
                  {"title": "Unit", "name": "unit", "type": "list", "limits": ["um", "pulse"]},
-                 {"title": "Coeff", "name": "coeff", "type": "float", "value": 2.0},  # (pulse/um)
-                 #{'title': 'Readout Modes:', 'name': 'readout'{'title': 'Units', 'name': 'units', 'type': 'list', 'limits': ['mm','rad', 'degree']  }
+                 {"title": "Coeff", "name": "coeff", "type": "float", "value": 2.0},  
              ] + comon_parameters_fun(is_multiaxes, axis_names=_axis_names, epsilon=_epsilon)
 
     def ini_attributes(self):
