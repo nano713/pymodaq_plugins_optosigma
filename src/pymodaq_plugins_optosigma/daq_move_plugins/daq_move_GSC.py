@@ -128,12 +128,12 @@ class DAQ_Move_GSC(DAQ_Move_base):
         ----------
         value: (float) value of the relative target positioning
         """
+        # self.controller.get_unit_position(self.settings['unit'], self.axis_value)
         value = self.check_bound(self.current_position + value) - self.current_position
-        self.target_value = value + self.current_position
         value = self.controller.convert_units(self.settings.child('unit').value(), value.value(), self.settings.child('coeff').value())
-
         value = DataActuator(data=value)
-        
+        self.target_value = value + self.current_position
+ 
         value = self.set_position_relative_with_scaling(value)
 
         self.controller.move_rel(int(value.value()), self.axis_value)
