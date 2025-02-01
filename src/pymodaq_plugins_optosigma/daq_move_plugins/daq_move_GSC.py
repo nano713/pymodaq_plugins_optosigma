@@ -129,6 +129,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
         ----------
         value: (float) value of the relative target positioning
         """
+        hello
         self.controller.get_unit_position(self.settings['unit'], self.axis_value)
         value = self.check_bound(self.current_position + value) - self.current_position
         self.target_value = value + self.current_position
