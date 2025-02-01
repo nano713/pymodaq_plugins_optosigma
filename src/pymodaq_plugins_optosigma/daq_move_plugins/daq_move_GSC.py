@@ -131,10 +131,10 @@ class DAQ_Move_GSC(DAQ_Move_base):
         """
         
         # value = self.controller.convert_units(self.settings.child('unit').value(), value.value(), self.settings.child('coeff').value())
-        self.current_position = self.controller.convert_units(self.settings['unit'], self.current_position.value(), self.settings['coeff'])
+        # self.current_position = self.controller.convert_units(self.settings['unit'], self.current_position.value(), self.settings['coeff'])
         value = self.controller.convert_units(self.settings['unit'], value.value(), self.settings['coeff'])
 
-        self.current_position = DataActuator(data = self.current_position)
+        # self.current_position = DataActuator(data = self.current_position)
         value = DataActuator(data = value)
 
         value = self.check_bound(self.current_position + value) - self.current_position
@@ -151,6 +151,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
         self.controller.move_rel(int(value.value()), self.axis_value)
 
         self.controller.get_unit_position(self.settings['unit'], self.axis_value)
+        self.controller.convert_position(self.settings['unit'], value.value(), self.axis_value)
         # self.controller.get_unit_position(self.settings['unit'], self.axis_value)
 
     def move_home(self):
