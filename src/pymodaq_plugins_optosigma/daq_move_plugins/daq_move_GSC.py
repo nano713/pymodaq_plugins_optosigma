@@ -106,7 +106,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
         ----------
         value: (DataActuator) value of the absolute target positioning
         """
-        self.controller.get_unit_position(self.settings['unit], self.axis_value)
+        self.controller.get_unit_position(value.value(), self.settings['unit'], self.axis_value)
         value = self.check_bound(value) 
         self.target_value = value
 
@@ -120,7 +120,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
         value = self.set_position_with_scaling(value)
 
         self.controller.move(int(value.value()), self.axis_value) 
-        self.controller.get_unit_position(self.settings['unit'], self.axis_value)
+        self.controller.get_unit_position(value.value(), self.settings['unit'], self.axis_value)
 
     def move_rel(self, value: DataActuator):
         """ Move the actuator to the relative target actuator value defined by value
@@ -132,26 +132,29 @@ class DAQ_Move_GSC(DAQ_Move_base):
         
         # value = self.controller.convert_units(self.settings.child('unit').value(), value.value(), self.settings.child('coeff').value())
         # self.current_position = self.controller.convert_units(self.settings['unit'], self.current_position.value(), self.settings['coeff'])
-        value = self.controller.convert_units(self.settings['unit'], value.value(), self.settings['coeff'])
 
-        # self.current_position = DataActuator(data = self.current_position)
-        value = DataActuator(data = value)
 
         value = self.check_bound(self.current_position + value) - self.current_position
 
         print("self.target_value.value()", self.target_value.value())
         self.target_value = value + self.current_position
-        # value = self.controller.convert_units(self.settings.child('unit').value(), self.target_value.value(), self.settings.child('coeff').value())
+        value = self.controller.convert_units(self.settings.child('unit').value(), value.value(), self.settings.child('coeff').value())
+        #value = self.controller.convert_units(self.settings['unit'], value.value(), self.settings['coeff'])
 
-        # value = DataActuator(data=value)
+        #self.current_position = DataActuator(data = self.current_position)
+        value = DataActuator(data = value)
+        # # value = DataActuator(data=value)
         
         value = self.set_position_relative_with_scaling(value)
 
         print("int(value.value())", int(value.value()))
-        self.controller.move_rel(int(value.value()), self.axis_value)
+        # if  self.axis_unit == 'um':
+        #     self.controller.move_rel(int(value.value()) * self.settings['coeff'], self.axis_value)
+        # else: 
+        self.controller.move_rel(int(value.value()), self.axis_value) 
 
-        self.controller.get_unit_position(self.settings['unit'], self.axis_value)
-        self.controller.convert_position(self.settings['unit'], value.value(), self.axis_value)
+        self.controller.get_unit_position(value.value(), self.settings['unit'], self.axis_value)
+        # self.controller.calculate_position(self.settings['unit'], value.value(), self.axis_value)
         # self.controller.get_unit_position(self.settings['unit'], self.axis_value)
 
     def move_home(self):
