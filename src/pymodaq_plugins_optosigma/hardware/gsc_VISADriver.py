@@ -49,14 +49,13 @@ class GSC:
             return value
         elif units == "um":
             return value*(coeff) 
-    def calculate_position(self, value, units, channel): 
-        """Calculate the position based on the units and channel.
-            WARNING: Only used for move_rel"""
-        if units == "um": 
-            position = value * 1000
-            self.position[channel-1] = position 
+        
+    def set_epsilon(self, value):
+        """Set the epsilon based on the GUI needed"""
+        if value == "pulse":
+            return 1
         else:
-            self.position[channel-1] = value
+            return value
     
     def set_unit(self, unit): 
         """Set the unit pulse based on the GUI needed"""
@@ -70,7 +69,7 @@ class GSC:
             value = value/2
             self.position[channel-1] = abs(self.position[channel-1] - value) 
         else: 
-            pass
+            self.position[channel-1] = value
 ### End of the block of code that updates the unit of GUI
     def move(self, position, channel):
         """Move the specified channel to the position."""
