@@ -72,7 +72,8 @@ class DAQ_Move_GSC(DAQ_Move_base):
             self.controller.set_speed(self.settings["speed_ini"], self.settings["speed_fin"],
                                       self.settings["acceleration_time"], self.axis_value)
         if param.name() == "unit":
-            self.axis_unit = self.controller.set_unit(self.settings['unit'])      
+            self.axis_unit = self.controller.set_unit(self.settings['unit'])
+            self._epsilon = self.controller.set_epsilon(self.settings['unit'], self.axis_value)     
 
     def ini_stage(self, controller=None):
         """Actuator communication initialization
@@ -147,10 +148,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
         
         value = self.set_position_relative_with_scaling(value)
 
-        print("int(value.value())", int(value.value()))
-        # if  self.axis_unit == 'um':
-        #     self.controller.move_rel(int(value.value()) * self.settings['coeff'], self.axis_value)
-        # else: 
+        print("int(value.value())", int(value.value())) 
         self.controller.move_rel(int(value.value()), self.axis_value) 
 
         self.controller.get_unit_position(value.value(), self.settings['unit'], self.axis_value)
