@@ -73,7 +73,7 @@ class DAQ_Move_GSC(DAQ_Move_base):
                                       self.settings["acceleration_time"], self.axis_value)
         if param.name() == "unit":
             self.axis_unit = self.controller.set_unit(self.settings['unit'])
-            self._epsilon = self.controller.set_epsilon(self.settings['unit'], self.axis_value)     
+            self.settings.child('epsilon').setValue(self.controller.set_epsilon(self.settings['unit'], self.settings.child('epsilon').value()))     
 
     def ini_stage(self, controller=None):
         """Actuator communication initialization
