@@ -50,12 +50,12 @@ class GSC:
         elif units == "um":
             return value*(coeff) 
         
-    def set_epsilon(self, value):
+    def set_epsilon(self, units, value):
         """Set the epsilon based on the GUI needed"""
-        if value == "pulse":
-            return 1
+        if units == "pulse" or units == " ":
+            return value*2
         else:
-            return value
+            return value/2
     
     def set_unit(self, unit): 
         """Set the unit pulse based on the GUI needed"""
