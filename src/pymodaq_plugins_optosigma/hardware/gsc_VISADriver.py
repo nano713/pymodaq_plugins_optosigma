@@ -81,7 +81,7 @@ class GSC:
         else:
             self._actuator.write(f"A:{channel}-P{abs(position)}")
         self._actuator.write("G:")
-        self.wait_for_ready()
+        # self.wait_for_ready()
         
         self.position[channel - 1] = position
 
@@ -92,7 +92,7 @@ class GSC:
         else:
             self._actuator.write(f"M:{channel}-P{abs(position)}")
         self._actuator.write("G:")
-        self.wait_for_ready()
+        # self.wait_for_ready()
         self.position[channel - 1] = position + self.position[channel - 1]
 
     def stop(self, channel):
@@ -108,7 +108,7 @@ class GSC:
     def home(self, channel):
         """Move the specified channel to the home position."""
         self._actuator.write(f"H:{channel}")
-        self.wait_for_ready()
+        # self.wait_for_ready()
         self.position[channel - 1] = 0
 
     def set_speed(self, speed_ini, speed_fin, accel_t, channel):
