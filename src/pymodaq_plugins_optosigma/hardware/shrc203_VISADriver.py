@@ -3,7 +3,7 @@ import time
 import pyvisa
 from pymodaq.utils.logger import set_logger, get_module_name
 
-logger = set_logger(get_module_name(__file__))
+logger = set_logger(get_module_name(__file__)) # DK - use general logger
 
 class AxisError(Exception):
     """
@@ -11,6 +11,7 @@ class AxisError(Exception):
 
     """
 
+# DK - convert the keys into a correct format like '1000002'
     MESSAGES = {
         '1': 'Normal (S1 to S10 and emergency stop has not occurred)',
         '3': 'Command error',
@@ -134,7 +135,7 @@ class SHRC203VISADriver:
         else:
             self._instr.write(f"A:{channel}-{self.unit}{abs(position)}")
         self._instr.write("G:")
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         self.position[channel-1] = position
 
 
@@ -182,22 +183,24 @@ class SHRC203VISADriver:
         else:
             self._instr.write(f"M:{channel}-{self.unit}{abs(position)}")
         self._instr.write("G:")
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         self.position[channel - 1] = self.position[channel - 1] + position
 
     def home(self, channel):
         """Move the stage to the home position."""
         self._instr.write(f"H:{channel}")
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         self.position[channel - 1] = 0
 
 
     def wait_for_ready(self, channel):
         """Wait for the stage to stop moving."""
         time0 = time.time()
-        while self.read_state(channel) != "R":
-            time1 = time.time() - time0
-            if time1 >= 60:
+        time0 = time.time() - time0
+        while time0 < 60:
+            time0 = time.time() - time0
+        # while self.read_state(channel) != "R":
+            if time0 >= 60:
                 logger.error("Timeout")
                 self.check_error(channel)
                 break
@@ -206,7 +209,7 @@ class SHRC203VISADriver:
     def stop(self, channel):
         """Stop the stage"""
         self._instr.write(f"L:{channel}")
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
 
     def read_state(self, channel):
         """Read the state if the stage is moving or not.
