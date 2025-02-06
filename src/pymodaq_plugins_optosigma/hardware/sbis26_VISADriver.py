@@ -1,8 +1,7 @@
 import time
 import pyvisa
-from pymodaq.utils.logger import set_logger, get_module_name
-
-logger = set_logger(get_module_name(__file__))
+import logging
+logger = logging.getLogger(__name__)
 
 class SBIS26VISADriver:
     """VISA class driver for the OptoSigma stage SBIS26."""
