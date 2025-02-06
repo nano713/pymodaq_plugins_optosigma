@@ -6,6 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 class AxisError(Exception):
+        # COEF = 2 (pulse/mm)
+
     MESSAGES = {
         "X": "Command or parameter errors",
         "K": "Normal state",
@@ -27,6 +29,7 @@ class GSC:
         self.speed_ini = [0, 0]
         self.speed_fin = [0, 0]
         self.accel_t = [0, 0]
+        
 
     def connect(self):
         try:
@@ -38,15 +41,48 @@ class GSC:
             logger.info(f"Connection to {self._actuator} successful")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
-
+        
+#### Below are methods based on updating the GUI units 
+    def convert_units(self, units, value, coeff):
+        """Convert value based on the units. Coefficient is taken through the GUI"""
+        if units == " " or units == "pulse":
+            return value
+        elif units == "um":
+            return value*(coeff) 
+        
+    def set_epsilon(self, units, value):
+        """Set the epsilon based on the GUI needed"""
+        if units == "pulse" or units == " ":
+            return value*2
+        else:
+            return value/2
+    
+    def set_unit(self, unit): 
+        """Set the unit pulse based on the GUI needed"""
+        if unit == "pulse": 
+            return " "
+        else: 
+            return unit
+    def get_unit_position(self, value, unit, channel): 
+        """Gets the actuator position based on the unit."""
+        if unit == 'um': 
+            value = value/2
+            self.position[channel-1] = abs(self.position[channel-1] - value) 
+        else: 
+            self.position[channel-1] = value
+### End of the block of code that updates the unit of GUI
     def move(self, position, channel):
         """Move the specified channel to the position."""
+
+        print(position, "pulses in move method")
+
         if position >= 0:
             self._actuator.write(f"A:{channel}+P{position}")
         else:
             self._actuator.write(f"A:{channel}-P{abs(position)}")
         self._actuator.write("G:")
         self.wait_for_ready()
+        
         self.position[channel - 1] = position
 
     def move_rel(self, position, channel):
