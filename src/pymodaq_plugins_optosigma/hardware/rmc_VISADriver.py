@@ -71,14 +71,14 @@ class RMCVISADriver:
             The channel to move.
 
         """
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         if position >= 0:
             self._actuator.write(f"A:{channel}+U{position}")
 
         else:
             self._actuator.write(f"A:{channel}-U{abs(position)}")
         self._actuator.write("G:")
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         self.position[channel - 1] = position
 
     def get_position(self, channel):
@@ -89,20 +89,20 @@ class RMCVISADriver:
 
     def move_relative(self, position, channel):
         """Move the specified channel to the relative position."""
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         if position >= 0:
             self._actuator.write(f"M:{channel}+U{position}")
         else:
             self._actuator.write(f"M:{channel}-U{abs(position)}")
         self._actuator.write("G:")
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         self.position[channel - 1] = position + self.position[channel - 1]
 
     def home(self, channel):
         """Move the specified channel to the home position"""
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         self._actuator.write(f"H:{channel}")
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         self.position[channel - 1] = 0
 
     def wait_for_ready(self, channel):
@@ -119,7 +119,7 @@ class RMCVISADriver:
     def stop(self, channel):
         """Stop the actuator on the specified channel."""
         self._actuator.write(f"L:{channel}")
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
 
     def read_state(self, channel):
         """Returns the state of the specified channel."""
