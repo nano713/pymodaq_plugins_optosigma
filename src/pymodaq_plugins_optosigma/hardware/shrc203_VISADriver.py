@@ -109,6 +109,7 @@ class SHRC203VISADriver:
             self._instr.parity = pyvisa.constants.Parity.none 
             self._instr.write_termination = "\r\n" 
             self._instr.read_termination = "\r\n"
+            self.set_unit("U")
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
     
