@@ -1,9 +1,8 @@
 import numpy as np
 import time
 import pyvisa
-from pymodaq.utils.logger import set_logger, get_module_name
-
-logger = set_logger(get_module_name(__file__)) # DK - use general logger
+import logging
+logger = logging.getLogger(__name__)
 
 class AxisError(Exception):
     """
