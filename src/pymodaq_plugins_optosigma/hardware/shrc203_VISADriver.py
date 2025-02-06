@@ -58,7 +58,7 @@ class SHRC203VISADriver:
         """
         self._instr = None
         self.rsrc_name = rsrc_name
-        self.unit = self.default_units
+        self.unit = self.set_unit(self.default_units)
         self.loop = [-1, -1, -1]
         self.position = [0, 0, 0]
         self.speed_ini = [-1, -1, -1]
@@ -74,6 +74,10 @@ class SHRC203VISADriver:
         "D" degree designation
         "P" Designation without unit (pulse
         """
+        units = ["N", "U", "M", "D", "P"]
+        unit_list = ['nm', 'um', 'mm', 'deg', 'pulse']
+        if unit in unit_list:
+            self.unit = units[unit_list.index(unit)]
         self.unit = unit
 
     def check_error(self, channel):
