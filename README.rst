@@ -3,20 +3,20 @@ pymodaq_plugins_optosigma
 
 .. the following must be adapted to your developed package, links to pypi, github  description...
 
-.. image:: https://img.shields.io/pypi/v/pymodaq_plugins_template.svg
-   :target: https://pypi.org/project/pymodaq_plugins_template/
+.. image:: https://img.shields.io/pypi/v/pymodaq_plugins_optosigma.svg
+   :target: https://pypi.org/project/pymodaq_plugins_optosigma/
    :alt: Latest Version
 
 .. image:: https://readthedocs.org/projects/pymodaq/badge/?version=latest
    :target: https://pymodaq.readthedocs.io/en/stable/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://github.com/PyMoDAQ/pymodaq_plugins_template/workflows/Upload%20Python%20Package/badge.svg
-   :target: https://github.com/PyMoDAQ/pymodaq_plugins_template
+.. image:: https://github.com/NanoQM/pymodaq_plugins_optosigma/workflows/Upload%20Python%20Package/badge.svg
+   :target: https://github.com/NanoQM/pymodaq_plugins_optosigma
    :alt: Publication Status
 
-.. image:: https://github.com/PyMoDAQ/pymodaq_plugins_template/actions/workflows/Test.yml/badge.svg
-    :target: https://github.com/PyMoDAQ/pymodaq_plugins_template/actions/workflows/Test.yml
+.. image:: https://github.com/NanoQM/pymodaq_plugins_optosigma/actions/workflows/Test.yml/badge.svg
+    :target: https://github.com/NanoQM/pymodaq_plugins_optosigma/actions/workflows/Test.yml
 
 
 Set of OptoSigma controllers for PyMoDAQ that includes the following controllers: {GSC-02C, RMC-102, SHRC203, SBIS26}. 
@@ -50,4 +50,4 @@ Installation instructions
 * Tested with PyMoDAQ’s version: 4.4.7
 * **RMC-102 USB Driver(for Windows 7/8.1/10)32/64bit *for Remote Acutuator**
       Install through OptoSigma’s website: 
-      https://www.optosigma.com/us_en/support/software-information/usb-driver?srsltid=AfmBOoqMgQh1GZLnWR-z0n4nsE4CoTmgBSNbEgfJrCWkuGPVxklKYVql
+      https://jp.optosigma.com/en_jp/software__usb
