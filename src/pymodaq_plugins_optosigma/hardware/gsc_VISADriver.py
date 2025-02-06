@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class AxisError(Exception):
-        # COEF = 10 (pulse/mm)
+        # COEF = 2 (pulse/mm)
 
     MESSAGES = {
         "X": "Command or parameter errors",
@@ -49,6 +49,13 @@ class GSC:
             return value
         elif units == "um":
             return value*(coeff) 
+        
+    def set_epsilon(self, units, value):
+        """Set the epsilon based on the GUI needed"""
+        if units == "pulse" or units == " ":
+            return value*2
+        else:
+            return value/2
     
     def set_unit(self, unit): 
         """Set the unit pulse based on the GUI needed"""
@@ -56,12 +63,13 @@ class GSC:
             return " "
         else: 
             return unit
-    def get_unit_position(self, unit, channel): 
+    def get_unit_position(self, value, unit, channel): 
         """Gets the actuator position based on the unit."""
         if unit == 'um': 
-            self.position[channel-1] = (self.position[channel-1])/2 
+            value = value/2
+            self.position[channel-1] = abs(self.position[channel-1] - value) 
         else: 
-            pass
+            self.position[channel-1] = value
 ### End of the block of code that updates the unit of GUI
     def move(self, position, channel):
         """Move the specified channel to the position."""
