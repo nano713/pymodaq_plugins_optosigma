@@ -78,7 +78,7 @@ class SBIS26VISADriver:
             self._stage.write(f"A:D,{channel},+{position}")
         else:
             self._stage.write(f"A:D,{channel},{position}")
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         self.position[channel - 1] = position
 
     def move_relative(self, position, channel):
@@ -89,7 +89,7 @@ class SBIS26VISADriver:
         """
 
         self._stage.write(f"M:D,{channel},{position}")
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         self.position[channel - 1] = self.position[channel - 1] + position
 
     def set_speed(self, speed_ini, speed_fin, accel_t, channel):
@@ -133,7 +133,7 @@ class SBIS26VISADriver:
     def home(self, channel):
         """ Sends the stage to the home position."""
         self._stage.write(f"H:D,{channel}")
-        self.wait_for_ready(channel)
+        # self.wait_for_ready(channel)
         self.position[channel - 1] = 0
 
     def close(self):
