@@ -57,7 +57,7 @@ class SHRC203VISADriver:
         """
         self._instr = None
         self.rsrc_name = rsrc_name
-        self.unit = self.set_unit(self.default_units)
+        self.set_unit(self.default_units)
         self.loop = [-1, -1, -1]
         self.position = [0, 0, 0]
         self.speed_ini = [-1, -1, -1]
@@ -77,7 +77,10 @@ class SHRC203VISADriver:
         unit_list = ['nm', 'um', 'mm', 'deg', 'pulse']
         if unit in unit_list:
             self.unit = units[unit_list.index(unit)]
-        self.unit = unit
+
+    def get_unit(self): 
+        """Get the unit of the controller"""
+        return self.unit
 
     def check_error(self, channel):
         """
@@ -104,12 +107,14 @@ class SHRC203VISADriver:
         try:
             rm = pyvisa.ResourceManager()
             self._instr = rm.open_resource(self.rsrc_name)
-            self._instr.baud_rate = 9600
+            self._instr.baud_rate = 38400
             self._instr.data_bits = 8 
             self._instr.parity = pyvisa.constants.Parity.none 
             self._instr.write_termination = "\r\n" 
             self._instr.read_termination = "\r\n"
-            self.set_unit("U")
+            self._instr.flow_control.rts_cts = True
+            self._instr.timeout = 50000
+
         except Exception as e:
             logger.error(f"Error connecting to {self.rsrc_name}: {e}")
     
@@ -139,7 +144,7 @@ class SHRC203VISADriver:
         else:
             self._instr.write(f"A:{channel}-{self.unit}{abs(position)}")
         self._instr.write("G:")
-        # self.wait_for_ready(channel)
+        self.wait_for_ready(channel)
         self.position[channel-1] = position
 
 
@@ -147,6 +152,26 @@ class SHRC203VISADriver:
         if self.position[channel-1] is None:
             return logger.error("Position is None")
         return self.position[channel-1]
+    
+    def query_position(self, channel):
+        # units = ["N", "U", "M", "D", "P"]
+        print(f"self.unit in query_position: {self.unit}")
+        position = self._instr.query("Q:")
+        print(position)
+        return position
+        # try:
+        #     if self.unit in units:
+        #         position = self._instr.query(f"Q:S{units.index(self.unit)}")
+        #         # position = position.split(",")[channel-1]
+        #         return position
+        # except Exception as e:
+        #     print(e)
+        #     logger.error(f"Error in query_position: {e}")
+        # position = self._instr.query(f"Q:Su") # Q:SM -> mm,
+        # position = position.split(",")[channel-1]
+        # # position = position[channel - 1]
+        # return position
+        # position = self._instr.query(???) #TODO Fix this     
 
 
     def set_speed(self, speed_ini, speed_fin, accel_t, channel): 
@@ -187,26 +212,24 @@ class SHRC203VISADriver:
         else:
             self._instr.write(f"M:{channel}-{self.unit}{abs(position)}")
         self._instr.write("G:")
-        # self.wait_for_ready(channel)
+        self.wait_for_ready(channel)
         self.position[channel - 1] = self.position[channel - 1] + position
 
     def home(self, channel):
         """Move the stage to the home position."""
         self._instr.write(f"H:{channel}")
-        # self.wait_for_ready(channel)
+        self.wait_for_ready(channel)
         self.position[channel - 1] = 0
 
 
     def wait_for_ready(self, channel):
-        """Wait for the stage to stop moving."""
+        """Waits for the stage to be ready."""
         time0 = time.time()
-        time0 = time.time() - time0
-        while time0 < 60:
-            time0 = time.time() - time0
-        # while self.read_state(channel) != "R":
-            if time0 >= 60:
+        while self.read_state(channel) != "R":
+            logger.debug(self.read_state(channel))
+            time1 = time.time() - time0
+            if time1 >= 60:
                 logger.error("Timeout")
-                self.check_error(channel)
                 break
             time.sleep(0.2)
 
