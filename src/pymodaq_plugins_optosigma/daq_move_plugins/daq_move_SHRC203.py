@@ -59,7 +59,7 @@ class DAQ_Move_SHRC203(DAQ_Move_base):
         float: The position obtained after scaling conversion.
         """
         pos = DataActuator(
-            data=self.stage.get_position(self.axis_value),
+            data=self.stage.query_position(self.axis_value),
             unit=self._controller_units
         )
         pos = self.get_position_with_scaling(pos)
