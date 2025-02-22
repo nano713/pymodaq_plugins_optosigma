@@ -146,6 +146,7 @@ class SHRC203VISADriver:
         self._instr.write("G:")
         self.wait_for_ready(channel)
         self.position[channel-1] = position
+        time.sleep(2)
 
 
     def get_position(self, channel):
@@ -155,24 +156,18 @@ class SHRC203VISADriver:
     
     def query_position(self, channel):
         # units = ["N", "U", "M", "D", "P"]
-        print(f"self.unit in query_position: {self.unit}")
-        position = self._instr.query("Q:")
-        print(position)
-        return position
-        # try:
-        #     if self.unit in units:
-        #         position = self._instr.query(f"Q:S{units.index(self.unit)}")
-        #         # position = position.split(",")[channel-1]
-        #         return position
-        # except Exception as e:
-        #     print(e)
-        #     logger.error(f"Error in query_position: {e}")
-        # position = self._instr.query(f"Q:Su") # Q:SM -> mm,
-        # position = position.split(",")[channel-1]
-        # # position = position[channel - 1]
-        # return position
-        # position = self._instr.query(???) #TODO Fix this     
-
+        while True:
+            try: 
+                position = self._instr.query(f"Q:S{self.unit}")
+                position = position.split(",")[channel-1].split(f"{self.unit}")
+                return float(position[1])
+            except IndexError: 
+                logger.warning("Error in query_position: IndexError. Retrying again.")
+                time.sleep(1)   
+            except Exception as e:
+                logger.error(f"Error in query_position: {e} is unexpected.")
+                break 
+            
 
     def set_speed(self, speed_ini, speed_fin, accel_t, channel): 
         """Sets the speed of the stage.
@@ -226,12 +221,13 @@ class SHRC203VISADriver:
         """Waits for the stage to be ready."""
         time0 = time.time()
         while self.read_state(channel) != "R":
-            logger.debug(self.read_state(channel))
+            # logger.debug(self.read_state(channel))
             time1 = time.time() - time0
             if time1 >= 60:
                 logger.error("Timeout")
                 break
-            time.sleep(0.2)
+            time.sleep(2)
+            
 
     def stop(self, channel):
         """Stop the stage"""
