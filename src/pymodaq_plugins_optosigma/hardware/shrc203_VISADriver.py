@@ -195,9 +195,9 @@ class SHRC203VISADriver:
                 logger.error("Timeout")
                 return self.speed_ini[channel-1], self.speed_fin[channel-1], self.accel_t[channel-1]
 
-        self.speed_ini[channel-1] = speed.split("S")[1].split("F")[0]
-        self.speed_fin[channel-1] = speed.split("F")[1].split("R")[0]
-        self.accel_t[channel-1]= speed.split("R")[1]
+        self.speed_ini[channel-1] = int(speed.split("S")[1].split("F")[0])
+        self.speed_fin[channel-1] = int(speed.split("F")[1].split("R")[0])
+        self.accel_t[channel-1]= int(speed.split("R")[1])
         return self.speed_ini[channel-1], self.speed_fin[channel-1], self.accel_t[channel-1]
 
     def move_relative(self, position, channel):
@@ -208,13 +208,12 @@ class SHRC203VISADriver:
             self._instr.write(f"M:{channel}-{self.unit}{abs(position)}")
         self._instr.write("G:")
         self.wait_for_ready(channel)
-        self.position[channel - 1] = self.position[channel - 1] + position
 
     def home(self, channel):
         """Move the stage to the home position."""
         self._instr.write(f"H:{channel}")
         self.wait_for_ready(channel)
-        self.position[channel - 1] = 0
+        
 
 
     def wait_for_ready(self, channel):
@@ -226,7 +225,7 @@ class SHRC203VISADriver:
             if time1 >= 60:
                 logger.error("Timeout")
                 break
-            time.sleep(2)
+            time.sleep(0.2)
             
 
     def stop(self, channel):
